@@ -1,0 +1,102 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Stargate Tactics</title>
+  <link rel="stylesheet" href="css/styles.css">
+</head>
+<body>
+  <div id="app">
+    <!-- Mission Brief Screen -->
+    <div id="mission-brief" class="screen" style="display: flex;">
+      <div class="brief-content">
+        <h1>Mission Brief</h1>
+        <p id="brief-text">SG-1, you're going to P3X-421. Intel suggests Jaffa presence. Secure the area and retrieve any Ancient artifacts.</p>
+        <button id="start-mission" class="btn-primary">Begin Mission</button>
+      </div>
+    </div>
+
+    <!-- Main Game Screen -->
+    <div id="game-screen" class="screen hidden">
+      <!-- Game Board (Hex Grid) -->
+      <div id="game-board">
+        <svg id="hex-grid" width="800" height="600"></svg>
+      </div>
+
+      <!-- UI Panel -->
+      <div id="ui-panel">
+        <!-- Room Indicator -->
+        <div id="room-indicator">
+          <span id="room-name">Stargate Arrival</span>
+          <span id="room-progress">Room 1/3</span>
+        </div>
+
+        <!-- Character Portraits -->
+        <div id="character-portraits"></div>
+
+        <!-- Card Selection Area -->
+        <div id="card-selection">
+          <h3>Select Cards</h3>
+          <div id="character-tabs"></div>
+          <div id="character-hand"></div>
+          <div id="action-buttons">
+            <button id="confirm-cards" class="btn-primary" disabled>Confirm Selection</button>
+            <button id="skip-action" class="btn-secondary hidden">Skip Action</button>
+            <button id="short-rest" class="btn-secondary hidden">Short Rest</button>
+            <button id="long-rest" class="btn-secondary hidden">Long Rest</button>
+          </div>
+        </div>
+
+        <!-- Initiative Tracker -->
+        <div id="initiative-tracker">
+          <h3>Turn Order</h3>
+          <div id="initiative-list"></div>
+        </div>
+
+        <!-- Combat Log -->
+        <div id="combat-log">
+          <h3>Combat Log</h3>
+          <div id="log-messages"></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Victory Screen -->
+    <div id="victory-screen" class="screen hidden">
+      <div class="screen-content">
+        <h1>Mission Successful</h1>
+        <p>Gate address acquired: <span id="gate-address"></span></p>
+        <p>SGC out.</p>
+        <button id="restart-game" class="btn-primary">New Mission</button>
+      </div>
+    </div>
+
+    <!-- Defeat Screen -->
+    <div id="defeat-screen" class="screen hidden">
+      <div class="screen-content">
+        <h1>Mission Failed</h1>
+        <p>SG-1, abort mission! Return to SGC immediately.</p>
+        <button id="retry-mission" class="btn-primary">Retry Mission</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Scripts (order matters!) -->
+  <script src="js/store.js"></script>
+  <script src="js/hexMath.js"></script>
+  <script src="js/data.js"></script>
+  <script src="js/pathfinding.js"></script>
+  <script src="js/enemyAI.js"></script>
+  <script src="js/combat.js"></script>
+  <script src="js/ui.js"></script>
+  <script src="js/game.js"></script>
+
+  <script>
+    // Initialize game when DOM is ready
+    window.addEventListener('DOMContentLoaded', () => {
+      Game.init();
+    });
+  </script>
+</body>
+</html>
