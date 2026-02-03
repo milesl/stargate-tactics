@@ -159,8 +159,14 @@ const Combat = {
 
   /**
    * Execute an attack action
+   * @param {Object} attacker - The attacking unit
+   * @param {Object} target - The target unit
+   * @param {number} damage - Damage to deal
+   * @param {Object} state - Current game state
+   * @param {Object} store - Game store
+   * @param {boolean} stun - Whether to stun the target
    */
-  executeAttack(attacker, target, damage, state, store) {
+  executeAttack(attacker, target, damage, state, store, stun = false) {
     const isTargetEnemy = state.enemies.some(e => e.id === target.id);
 
     if (isTargetEnemy) {
@@ -173,6 +179,10 @@ const Combat = {
 
       if (newHealth <= 0) {
         UI.addLogMessage(`${target.name} defeated!`, 'attack');
+      } else if (stun) {
+        // Apply stun effect to enemy
+        store.stunEnemy(target.id);
+        UI.addLogMessage(`${target.name} is stunned!`, 'attack');
       }
     } else {
       store.damageCharacter(target.id, damage);
@@ -182,6 +192,10 @@ const Combat = {
         `${attacker.name} attacks ${target.shortName} for ${damage} damage! (${newHealth}/${target.maxHealth})`,
         'attack'
       );
+
+      if (newHealth <= 0) {
+        UI.addLogMessage(`${target.shortName} has fallen! Mission failed!`, 'attack');
+      }
     }
 
     return { damage };
@@ -249,6 +263,7 @@ const Combat = {
           targets,
           damage: action.value,
           range,
+          stun: action.stun || false,
         };
       }
 

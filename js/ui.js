@@ -392,15 +392,17 @@ const UI = {
       const isActive = character.id === activeCharacterId;
       const selection = selectedCards[character.id];
       const isReady = selection?.cardA && selection?.cardB;
-      const needsRest = character.hand.length < 2;
+      const needsRest = character.hand.length < 2 && !character.resting;
+      const isResting = character.resting;
 
       let classes = 'character-tab';
       if (isActive) classes += ' active';
       if (isReady) classes += ' ready';
       if (needsRest) classes += ' needs-rest';
+      if (isResting) classes += ' resting';
 
       tab.className = classes;
-      tab.textContent = character.shortName;
+      tab.textContent = isResting ? `${character.shortName} (Resting)` : character.shortName;
       tab.dataset.id = character.id;
 
       tab.addEventListener('click', () => {

@@ -64,6 +64,11 @@ const Game = {
         allCardsSelected(state) {
           // Check each character
           for (const char of state.characters) {
+            // Skip resting characters (long rest skips their turn)
+            if (char.resting) {
+              continue;
+            }
+
             // Skip characters who can't play (need rest or exhausted)
             if (char.hand.length < 2) {
               // If they have discard, they need to rest first
@@ -227,6 +232,26 @@ const Game = {
               this.setState({ enemies });
             }
           }
+        },
+
+        stunEnemy(enemyId) {
+          const enemies = this.state.enemies.map(e => {
+            if (e.id === enemyId) {
+              return { ...e, stunned: true };
+            }
+            return e;
+          });
+          this.setState({ enemies });
+        },
+
+        clearEnemyStun(enemyId) {
+          const enemies = this.state.enemies.map(e => {
+            if (e.id === enemyId) {
+              return { ...e, stunned: false };
+            }
+            return e;
+          });
+          this.setState({ enemies });
         },
 
         advanceRoom() {
@@ -415,12 +440,17 @@ const Game = {
       return c;
     });
 
-    this.store.setState({ characters });
+    // Mark character as resting - they skip this round
+    const updatedCharacters = characters.map(c => {
+      if (c.id === charId) {
+        return { ...c, resting: true };
+      }
+      return c;
+    });
+
+    this.store.setState({ characters: updatedCharacters });
     UI.addLogMessage(`${char.shortName} takes a long rest, heals 2, recovers ${recoveredCards.length} cards (skips this round)`, 'heal');
     UI.showRestButtons(false);
-
-    // Mark character as resting (they skip this round's card selection)
-    // For MVP simplicity, we just recover their cards and they can select normally
   },
 
   /**
@@ -528,7 +558,7 @@ const Game = {
 
       if (isValidTarget) {
         const currentTurn = state.turn.turnOrder[state.turn.currentTurnIndex];
-        Combat.executeAttack(currentTurn.unit, unit, currentAction.damage, state, this.store);
+        Combat.executeAttack(currentTurn.unit, unit, currentAction.damage, state, this.store, currentAction.stun);
         this.store.setHighlightedHexes([]);
         this.completeCurrentAction();
       }
@@ -638,6 +668,11 @@ const Game = {
   executeNextTurn() {
     const state = this.store.state;
     const { turnOrder, currentTurnIndex } = state.turn;
+
+    // Check for defeat (character died)
+    if (state.phase === 'defeat') {
+      return;
+    }
 
     // Check for victory mid-round
     if (state.enemies.length === 0) {
@@ -786,6 +821,12 @@ const Game = {
    */
   executeEnemyTurn(turnEntry) {
     const state = this.store.state;
+
+    // Check for defeat before executing
+    if (state.phase === 'defeat') {
+      return;
+    }
+
     const enemy = state.enemies.find(e => e.id === turnEntry.unit.id);
 
     if (!enemy) {
@@ -820,8 +861,13 @@ const Game = {
         }, 500);
       }, 300);
     } else {
-      // Wait/skip
-      UI.addLogMessage(`${enemy.name} waits`, '');
+      // Wait/skip - check if stunned
+      if (enemy.stunned) {
+        UI.addLogMessage(`${enemy.name} is stunned and cannot act!`, 'attack');
+        this.store.clearEnemyStun(enemy.id);
+      } else {
+        UI.addLogMessage(`${enemy.name} waits`, '');
+      }
       setTimeout(() => {
         this.advanceTurn();
       }, 300);
@@ -882,6 +928,13 @@ const Game = {
 
     // Clear shields
     Combat.clearShields(this.store.state, this.store);
+
+    // Clear resting status from characters
+    const characters = this.store.state.characters.map(c => ({
+      ...c,
+      resting: false,
+    }));
+    this.store.setState({ characters });
 
     // Check win condition
     if (this.store.state.enemies.length === 0) {
