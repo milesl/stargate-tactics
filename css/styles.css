@@ -113,21 +113,25 @@ body {
   margin-top: 12px;
 }
 
-/* Game Screen Layout */
+/* Game Screen Layout - Full Screen Hex Grid with Floating Panels */
 #game-screen {
-  display: grid;
-  grid-template-columns: 800px 1fr;
-  gap: 20px;
-  padding: 20px;
+  position: relative;
+  width: 100vw;
+  height: 100vh;
+  overflow: hidden;
+  display: block;
 }
 
 #game-board {
-  background: #0a0e14;
-  border: 2px solid #2d3e50;
-  border-radius: 8px;
-  overflow: hidden;
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
   height: 100%;
-  width: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: #0a0e14;
 }
 
 #hex-grid {
@@ -135,39 +139,115 @@ body {
   background: #0a0e14;
 }
 
-/* UI Panel */
-#ui-panel {
-  display: flex;
-  flex-direction: column;
-  gap: 20px;
-  overflow-y: auto;
-  width: 50%;
-}
-
-#ui-panel > div {
-  background: #1a2332;
+/* Floating Panels */
+.floating-panel {
+  position: absolute;
+  background: rgba(26, 35, 50, 0.95);
   border: 2px solid #2d3e50;
   border-radius: 8px;
-  padding: 16px;
+  backdrop-filter: blur(4px);
+  z-index: 10;
+  max-height: calc(100vh - 80px);
+  display: flex;
+  flex-direction: column;
 }
 
-#ui-panel h3 {
-  color: #d4af37;
-  margin-bottom: 12px;
-  font-size: 1.2em;
-  border-bottom: 1px solid #2d3e50;
-  padding-bottom: 8px;
+.floating-panel.minimized .panel-content {
+  display: none;
 }
 
-/* Room Indicator */
-#room-indicator {
+.floating-panel.minimized {
+  max-height: none;
+}
+
+.panel-header {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  padding: 12px 16px;
+  padding: 8px 12px;
   background: linear-gradient(135deg, #1a2332 0%, #2d3e50 100%);
-  border: 2px solid #d4af37;
-  border-radius: 8px;
+  border-bottom: 1px solid #2d3e50;
+  border-radius: 6px 6px 0 0;
+  cursor: pointer;
+  user-select: none;
+}
+
+.floating-panel.minimized .panel-header {
+  border-radius: 6px;
+  border-bottom: none;
+}
+
+.panel-header span {
+  color: #d4af37;
+  font-weight: bold;
+  font-size: 0.95em;
+}
+
+.panel-toggle {
+  background: none;
+  border: 1px solid #4a5568;
+  color: #e0e0e0;
+  width: 24px;
+  height: 24px;
+  border-radius: 4px;
+  cursor: pointer;
+  font-size: 1.1em;
+  line-height: 1;
+  padding: 0;
+}
+
+.panel-toggle:hover {
+  background: #4a5568;
+}
+
+.panel-content {
+  padding: 12px;
+  overflow-y: auto;
+  flex: 1;
+}
+
+/* Panel Positions */
+.panel-top-left {
+  top: 60px;
+  left: 20px;
+  width: 320px;
+}
+
+.panel-top-right {
+  top: 60px;
+  right: 20px;
+  width: 200px;
+}
+
+.panel-right {
+  bottom: 20px;
+  right: 20px;
+  width: 280px;
+  max-height: 300px;
+}
+
+.panel-bottom {
+  bottom: 20px;
+  left: 20px;
+  transform: none;
+  width: 500px;
+  max-height: 420px;
+}
+
+/* Room Indicator - Top Bar */
+#room-indicator {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 12px 24px;
+  background: linear-gradient(135deg, rgba(26, 35, 50, 0.95) 0%, rgba(45, 62, 80, 0.95) 100%);
+  border-bottom: 2px solid #d4af37;
+  z-index: 20;
+  backdrop-filter: blur(4px);
 }
 
 #room-name {
@@ -183,16 +263,18 @@ body {
 
 /* Character Portraits */
 #character-portraits {
-  display: grid;
-  grid-template-columns: repeat(4, 1fr);
-  gap: 12px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
 }
 
 .character-portrait {
   background: #2d3e50;
-  padding: 12px;
+  padding: 8px 12px;
   border-radius: 4px;
-  text-align: center;
+  display: flex;
+  align-items: center;
+  gap: 12px;
 }
 
 .character-portrait.active {
@@ -202,14 +284,14 @@ body {
 .character-name {
   font-weight: bold;
   color: #d4af37;
-  margin-bottom: 8px;
+  min-width: 60px;
 }
 
 .character-health {
   display: flex;
   align-items: center;
   gap: 8px;
-  margin-top: 8px;
+  flex: 1;
 }
 
 .health-bar-container {
@@ -280,9 +362,9 @@ body {
 
 #character-hand {
   display: grid;
-  grid-template-columns: repeat(2, 1fr);
+  grid-template-columns: repeat(5, 1fr);
   gap: 8px;
-  max-height: 400px;
+  max-height: 300px;
   overflow-y: auto;
 }
 
@@ -477,9 +559,9 @@ body {
 
 /* Combat Log */
 #log-messages {
-  max-height: 200px;
+  max-height: 300px;
   overflow-y: auto;
-  font-size: 0.9em;
+  font-size: 0.85em;
 }
 
 .log-message {
@@ -621,13 +703,53 @@ body {
 
 /* Responsive */
 @media (max-width: 1400px) {
-  #game-screen {
-    grid-template-columns: 600px 1fr;
+  .panel-bottom {
+    width: 450px;
   }
 
-  #hex-grid {
-    width: 100%;
-    height: 100%;
+  #character-hand {
+    grid-template-columns: repeat(4, 1fr);
+  }
+
+  .panel-top-left {
+    width: 280px;
+  }
+}
+
+@media (max-width: 1200px) {
+  .panel-bottom {
+    width: 400px;
+  }
+
+  #character-hand {
+    grid-template-columns: repeat(3, 1fr);
+  }
+
+  .panel-right {
+    width: 240px;
+  }
+
+  .panel-top-right {
+    width: 180px;
+  }
+}
+
+@media (max-width: 900px) {
+  .panel-bottom {
+    width: calc(50vw - 30px);
+  }
+
+  .panel-right {
+    width: calc(50vw - 30px);
+  }
+
+  #character-hand {
+    grid-template-columns: repeat(2, 1fr);
+  }
+
+  .panel-top-left,
+  .panel-top-right {
+    display: none;
   }
 }
 

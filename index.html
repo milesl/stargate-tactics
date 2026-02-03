@@ -19,25 +19,37 @@
 
     <!-- Main Game Screen -->
     <div id="game-screen" class="screen hidden">
-      <!-- Game Board (Hex Grid) -->
+      <!-- Game Board (Hex Grid) - Full Screen Background -->
       <div id="game-board">
-        <svg id="hex-grid" width="800" height="600"></svg>
+        <svg id="hex-grid"></svg>
       </div>
 
-      <!-- UI Panel -->
-      <div id="ui-panel">
-        <!-- Room Indicator -->
-        <div id="room-indicator">
-          <span id="room-name">Stargate Arrival</span>
-          <span id="room-progress">Room 1/3</span>
+      <!-- Room Indicator - Top Bar -->
+      <div id="room-indicator">
+        <span id="room-name">Stargate Arrival</span>
+        <span id="room-progress">Room 1/3</span>
+      </div>
+
+      <!-- Floating Panels -->
+
+      <!-- Character Status Panel -->
+      <div id="panel-characters" class="floating-panel panel-top-left">
+        <div class="panel-header">
+          <span>Team Status</span>
+          <button class="panel-toggle" data-panel="characters">−</button>
         </div>
+        <div class="panel-content">
+          <div id="character-portraits"></div>
+        </div>
+      </div>
 
-        <!-- Character Portraits -->
-        <div id="character-portraits"></div>
-
-        <!-- Card Selection Area -->
-        <div id="card-selection">
-          <h3>Select Cards</h3>
+      <!-- Card Selection Panel -->
+      <div id="panel-cards" class="floating-panel panel-bottom">
+        <div class="panel-header">
+          <span>Select Cards</span>
+          <button class="panel-toggle" data-panel="cards">−</button>
+        </div>
+        <div class="panel-content">
           <div id="character-tabs"></div>
           <div id="character-hand"></div>
           <div id="action-buttons">
@@ -47,16 +59,26 @@
             <button id="long-rest" class="btn-secondary hidden">Long Rest</button>
           </div>
         </div>
+      </div>
 
-        <!-- Initiative Tracker -->
-        <div id="initiative-tracker">
-          <h3>Turn Order</h3>
+      <!-- Initiative Tracker Panel -->
+      <div id="panel-initiative" class="floating-panel panel-top-right">
+        <div class="panel-header">
+          <span>Turn Order</span>
+          <button class="panel-toggle" data-panel="initiative">−</button>
+        </div>
+        <div class="panel-content">
           <div id="initiative-list"></div>
         </div>
+      </div>
 
-        <!-- Combat Log -->
-        <div id="combat-log">
-          <h3>Combat Log</h3>
+      <!-- Combat Log Panel -->
+      <div id="panel-log" class="floating-panel panel-right">
+        <div class="panel-header">
+          <span>Combat Log</span>
+          <button class="panel-toggle" data-panel="log">−</button>
+        </div>
+        <div class="panel-content">
           <div id="log-messages"></div>
         </div>
       </div>

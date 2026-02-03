@@ -46,6 +46,34 @@ const UI = {
       roomName: document.getElementById('room-name'),
       roomProgress: document.getElementById('room-progress'),
     };
+
+    // Initialize panel toggle buttons
+    this.initPanelToggles();
+  },
+
+  /**
+   * Initialize floating panel toggle functionality
+   */
+  initPanelToggles() {
+    document.querySelectorAll('.panel-toggle').forEach(btn => {
+      btn.addEventListener('click', (e) => {
+        e.stopPropagation();
+        const panel = btn.closest('.floating-panel');
+        panel.classList.toggle('minimized');
+        btn.textContent = panel.classList.contains('minimized') ? '+' : '−';
+      });
+    });
+
+    // Also allow clicking header to toggle
+    document.querySelectorAll('.panel-header').forEach(header => {
+      header.addEventListener('click', (e) => {
+        if (e.target.classList.contains('panel-toggle')) return;
+        const panel = header.closest('.floating-panel');
+        const btn = header.querySelector('.panel-toggle');
+        panel.classList.toggle('minimized');
+        btn.textContent = panel.classList.contains('minimized') ? '+' : '−';
+      });
+    });
   },
 
   /**
@@ -124,6 +152,16 @@ const UI = {
   renderHexGrid(room, characters, enemies, highlightedHexes = []) {
     const svg = this.elements.hexGrid;
     if (!svg) return;
+
+    // Calculate SVG size based on room dimensions
+    const padding = 60;
+    const gridWidth = room.width * this.hexSize * 1.75 + padding;
+    const gridHeight = room.height * this.hexSize * 1.5 + padding;
+
+    // Set SVG dimensions
+    svg.setAttribute('width', gridWidth);
+    svg.setAttribute('height', gridHeight);
+    svg.setAttribute('viewBox', `0 0 ${gridWidth} ${gridHeight}`);
 
     // Clear existing content
     svg.innerHTML = '';
