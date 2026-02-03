@@ -314,6 +314,16 @@ const UI = {
     });
     artifactGroup.appendChild(diamond);
 
+    // Add title for tooltip
+    const title = this.createSVGElement('title', {});
+    title.textContent = 'Ancient Artifact - Move a character here to complete the mission';
+    artifactGroup.appendChild(title);
+
+    // Click handler to show hint
+    artifactGroup.addEventListener('click', () => {
+      this.addLogMessage('Move a character to the artifact to retrieve it!', 'move');
+    });
+
     parent.appendChild(artifactGroup);
   },
 

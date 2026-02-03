@@ -591,6 +591,27 @@ body {
   pointer-events: none;
 }
 
+/* Artifact Token */
+.artifact-token {
+  cursor: pointer;
+  animation: artifact-pulse 2s ease-in-out infinite;
+}
+
+.artifact-token polygon {
+  filter: drop-shadow(0 0 8px rgba(212, 175, 55, 0.8));
+}
+
+@keyframes artifact-pulse {
+  0%, 100% {
+    opacity: 1;
+    transform: scale(1);
+  }
+  50% {
+    opacity: 0.8;
+    transform: scale(1.1);
+  }
+}
+
 /* Responsive */
 @media (max-width: 1400px) {
   #game-screen {

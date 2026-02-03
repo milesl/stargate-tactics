@@ -502,6 +502,12 @@ const Game = {
         const currentTurn = state.turn.turnOrder[state.turn.currentTurnIndex];
         Combat.executeMove(currentTurn.unit, hex, state, this.store);
         this.store.setHighlightedHexes([]);
+
+        // Check for artifact pickup in room 3
+        if (this.checkArtifactPickup(hex)) {
+          return; // Victory triggered, don't continue turn
+        }
+
         this.completeCurrentAction();
       }
     }
@@ -841,6 +847,31 @@ const Game = {
   },
 
   /**
+   * Check if character picked up the artifact (room 3 win condition)
+   * @param {Object} hex - The hex position the character moved to
+   * @returns {boolean} True if victory was triggered
+   */
+  checkArtifactPickup(hex) {
+    const state = this.store.state;
+
+    // Only check in room 3 when all enemies are defeated
+    if (state.currentRoom !== 3 || state.enemies.length > 0) {
+      return false;
+    }
+
+    const room = GameData.rooms[2]; // Room 3 (0-indexed)
+    const artifactPos = room.artifactPosition;
+
+    if (artifactPos && HexMath.equals(hex, artifactPos)) {
+      UI.addLogMessage('Artifact retrieved! Mission successful!', 'heal');
+      this.store.setPhase('victory');
+      return true;
+    }
+
+    return false;
+  },
+
+  /**
    * End the current round
    */
   endRound() {
@@ -861,8 +892,20 @@ const Game = {
         this.store.clearCardSelections();
         UI.addLogMessage(`Entering: ${GameData.rooms[currentRoom].name}`, 'move');
       } else {
-        UI.addLogMessage('All rooms cleared! Mission successful!', 'heal');
-        this.store.setPhase('victory');
+        // Room 3 cleared - check if anyone is already on artifact
+        const room = GameData.rooms[2];
+        const artifactPos = room.artifactPosition;
+        const onArtifact = this.store.state.characters.some(
+          c => c.health > 0 && HexMath.equals(c.position, artifactPos)
+        );
+
+        if (onArtifact) {
+          UI.addLogMessage('Artifact retrieved! Mission successful!', 'heal');
+          this.store.setPhase('victory');
+        } else {
+          UI.addLogMessage('Room cleared! Collect the artifact to complete the mission!', 'heal');
+          this.store.clearCardSelections();
+        }
       }
     } else {
       // Check if any character can still play (has cards)
