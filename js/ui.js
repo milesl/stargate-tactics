@@ -6,6 +6,50 @@ const UI = {
   // DOM element references
   elements: {},
 
+  /**
+   * Generate tooltip text for a card action
+   */
+  getActionTooltip(action) {
+    const tips = [];
+
+    switch (action.type) {
+      case 'move':
+        tips.push(`Move up to ${action.value} hexes`);
+        break;
+      case 'attack':
+        tips.push(`Deal ${action.value} damage`);
+        if (action.range > 1) tips.push(`Range: ${action.range} hexes`);
+        if (action.aoe) tips.push('Area of Effect: hits adjacent enemies');
+        if (action.push) tips.push(`Push: knock target back ${action.push} hex(es)`);
+        if (action.stun) tips.push('Stun: target skips next turn');
+        break;
+      case 'heal':
+        tips.push(`Restore ${action.value} health`);
+        if (action.aoe) tips.push('Affects all allies');
+        if (action.range > 0) tips.push(`Range: ${action.range} hexes`);
+        break;
+      case 'shield':
+        tips.push(`Grant ${action.value} temporary shield`);
+        tips.push('Shield absorbs damage until end of round');
+        break;
+      case 'push':
+        tips.push(`Push enemy ${action.value} hexes away`);
+        tips.push('Blocked by walls and other units');
+        break;
+      case 'buff':
+        tips.push('Applies a beneficial effect');
+        break;
+      case 'special':
+        tips.push('Special ability');
+        break;
+      case 'trap':
+        tips.push('Place a trap on the battlefield');
+        break;
+    }
+
+    return tips.join(' • ');
+  },
+
   // Hex size for rendering
   hexSize: 40,
 
@@ -480,16 +524,19 @@ const UI = {
         selectionIndicator = `<div class="card-selection">Card B (using ${selectedCards.useTopOfA ? 'BOTTOM' : 'TOP'})</div>`;
       }
 
+      const topTooltip = this.getActionTooltip(card.top);
+      const bottomTooltip = this.getActionTooltip(card.bottom);
+
       cardEl.innerHTML = `
         <div class="card-header">
           <span class="card-name">${card.name}</span>
-          <span class="card-initiative">${card.initiative}</span>
+          <span class="card-initiative" title="Initiative: Lower goes first">${card.initiative}</span>
         </div>
-        <div class="card-action">
+        <div class="card-action" title="${topTooltip}">
           <div class="action-label">TOP</div>
           <div class="action-text">${card.top.text}</div>
         </div>
-        <div class="card-action">
+        <div class="card-action" title="${bottomTooltip}">
           <div class="action-label">BOTTOM</div>
           <div class="action-text">${card.bottom.text}</div>
         </div>

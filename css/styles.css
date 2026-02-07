@@ -420,6 +420,27 @@ body {
   padding: 6px;
   background: #1a2332;
   border-radius: 4px;
+  position: relative;
+  cursor: help;
+}
+
+.card-action[title]:hover::after {
+  content: attr(title);
+  position: fixed;
+  top: 80px;
+  left: 50%;
+  transform: translateX(-50%);
+  background: #0a0e14;
+  color: #e0e0e0;
+  padding: 8px 12px;
+  border-radius: 4px;
+  font-size: 0.85em;
+  z-index: 1000;
+  border: 1px solid #d4af37;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.5);
+  max-width: 300px;
+  white-space: normal;
+  text-align: center;
 }
 
 .action-label {
