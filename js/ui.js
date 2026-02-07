@@ -518,10 +518,17 @@ const UI = {
       cardEl.dataset.id = card.id;
 
       let selectionIndicator = '';
+      let topWillUse = '';
+      let bottomWillUse = '';
+
       if (isCardA) {
         selectionIndicator = `<div class="card-selection">Card A (using ${selectedCards.useTopOfA ? 'TOP' : 'BOTTOM'})</div>`;
+        topWillUse = selectedCards.useTopOfA ? 'will-use' : '';
+        bottomWillUse = selectedCards.useTopOfA ? '' : 'will-use';
       } else if (isCardB) {
         selectionIndicator = `<div class="card-selection">Card B (using ${selectedCards.useTopOfA ? 'BOTTOM' : 'TOP'})</div>`;
+        topWillUse = selectedCards.useTopOfA ? '' : 'will-use';
+        bottomWillUse = selectedCards.useTopOfA ? 'will-use' : '';
       }
 
       const topTooltip = this.getActionTooltip(card.top);
@@ -532,12 +539,13 @@ const UI = {
           <span class="card-name">${card.name}</span>
           <span class="card-initiative" title="Initiative: Lower goes first">${card.initiative}</span>
         </div>
-        <div class="card-action" title="${topTooltip}">
-          <div class="action-label">TOP</div>
+        <div class="card-action top-action ${topWillUse}" title="${topTooltip}">
+          <div class="action-label top-label">TOP</div>
           <div class="action-text">${card.top.text}</div>
         </div>
-        <div class="card-action" title="${bottomTooltip}">
-          <div class="action-label">BOTTOM</div>
+        <div class="card-divider"></div>
+        <div class="card-action bottom-action ${bottomWillUse}" title="${bottomTooltip}">
+          <div class="action-label bottom-label">BOTTOM</div>
           <div class="action-text">${card.bottom.text}</div>
         </div>
         ${selectionIndicator}

@@ -409,10 +409,12 @@ body {
 }
 
 .card-initiative {
-  background: #1a2332;
+  background: #d4af37;
+  color: #0a0e14;
   padding: 2px 8px;
   border-radius: 4px;
   font-size: 0.9em;
+  font-weight: bold;
 }
 
 .card-action {
@@ -422,6 +424,35 @@ body {
   border-radius: 4px;
   position: relative;
   cursor: help;
+  border-left: 3px solid transparent;
+  transition: all 0.2s;
+}
+
+.card-action.top-action {
+  border-left-color: #48bb78;
+}
+
+.card-action.bottom-action {
+  border-left-color: #4299e1;
+}
+
+.card-action.will-use {
+  background: #2d3e50;
+  box-shadow: inset 0 0 8px rgba(212, 175, 55, 0.3);
+}
+
+.card-action.will-use.top-action {
+  border-left-color: #68d391;
+}
+
+.card-action.will-use.bottom-action {
+  border-left-color: #63b3ed;
+}
+
+.card-divider {
+  height: 1px;
+  background: linear-gradient(90deg, transparent, #4a5568, transparent);
+  margin: 6px 0;
 }
 
 .card-action[title]:hover::after {
@@ -445,8 +476,16 @@ body {
 
 .action-label {
   font-size: 0.7em;
-  color: #9ca3af;
+  font-weight: bold;
   margin-bottom: 4px;
+}
+
+.action-label.top-label {
+  color: #48bb78;
+}
+
+.action-label.bottom-label {
+  color: #4299e1;
 }
 
 .action-text {
