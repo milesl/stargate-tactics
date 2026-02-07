@@ -558,7 +558,16 @@ const Game = {
 
       if (isValidTarget) {
         const currentTurn = state.turn.turnOrder[state.turn.currentTurnIndex];
-        Combat.executeAttack(currentTurn.unit, unit, currentAction.damage, state, this.store, currentAction.stun);
+
+        if (currentAction.aoe) {
+          // AOE attack - hit primary target and nearby enemies
+          // "hit 2 adjacent" style uses maxAdditional of 2
+          const maxAdditional = currentAction.aoeRadius === 1 ? 2 : null;
+          Combat.executeAoeAttack(currentTurn.unit, unit, currentAction.damage, currentAction.aoeRadius, state, this.store, maxAdditional);
+        } else {
+          Combat.executeAttack(currentTurn.unit, unit, currentAction.damage, state, this.store, currentAction.stun);
+        }
+
         this.store.setHighlightedHexes([]);
         this.completeCurrentAction();
       }
@@ -785,7 +794,8 @@ const Game = {
           setTimeout(() => this.advanceTurn(), 300);
         }
       } else {
-        UI.addLogMessage(`Select target for ${unit.shortName}'s attack (${action.value} damage, range ${result.range})`, 'attack');
+        const aoeText = result.aoe ? ', AOE' : '';
+        UI.addLogMessage(`Select target for ${unit.shortName}'s attack (${action.value} damage, range ${result.range}${aoeText})`, 'attack');
       }
     } else if (result.type === 'heal') {
       const hexes = result.targets.map(t => ({

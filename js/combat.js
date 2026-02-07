@@ -202,6 +202,48 @@ const Combat = {
   },
 
   /**
+   * Execute an AOE attack action - hits primary target and nearby enemies
+   * @param {Object} attacker - The attacking unit
+   * @param {Object} primaryTarget - The primary target unit
+   * @param {number} damage - Damage to deal
+   * @param {number} aoeRadius - Radius of AOE effect
+   * @param {Object} state - Current game state
+   * @param {Object} store - Game store
+   * @param {number} maxAdditional - Max additional targets (for "hit 2 adjacent" style)
+   */
+  executeAoeAttack(attacker, primaryTarget, damage, aoeRadius, state, store, maxAdditional = null) {
+    // Hit primary target first
+    this.executeAttack(attacker, primaryTarget, damage, state, store);
+
+    // Find additional targets within AOE radius of primary target
+    const additionalTargets = state.enemies.filter(enemy => {
+      if (enemy.id === primaryTarget.id) return false;
+      if (enemy.health <= 0) return false;
+      const distance = HexMath.distance(primaryTarget.position, enemy.position);
+      return distance <= aoeRadius;
+    });
+
+    // Limit additional targets if specified (for "hit 2 adjacent" style)
+    const targetsToHit = maxAdditional !== null
+      ? additionalTargets.slice(0, maxAdditional)
+      : additionalTargets;
+
+    // Hit additional targets
+    for (const target of targetsToHit) {
+      // Re-fetch state as it may have changed
+      const currentState = store.state;
+      const currentTarget = currentState.enemies.find(e => e.id === target.id);
+      if (currentTarget && currentTarget.health > 0) {
+        this.executeAttack(attacker, currentTarget, damage, currentState, store);
+      }
+    }
+
+    if (targetsToHit.length > 0) {
+      UI.addLogMessage(`AOE hits ${targetsToHit.length} additional target(s)!`, 'attack');
+    }
+  },
+
+  /**
    * Execute a heal action
    */
   executeHeal(healer, target, amount, state, store) {
@@ -264,11 +306,24 @@ const Combat = {
           damage: action.value,
           range,
           stun: action.stun || false,
+          aoe: action.aoe || false,
+          aoeRadius: action.aoeRadius || 1,
         };
       }
 
       case 'heal': {
         const range = action.range || 0;
+
+        // AOE heal - heal all allies
+        if (action.aoe) {
+          for (const char of state.characters) {
+            if (char.health > 0 && char.health < char.maxHealth) {
+              this.executeHeal(unit, char, action.value, state, store);
+            }
+          }
+          return { type: 'complete' };
+        }
+
         const targets = this.getHealTargets(unit, range, state);
 
         // If only self-heal (range 0), auto-execute
