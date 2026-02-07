@@ -275,6 +275,13 @@ body {
   display: flex;
   align-items: center;
   gap: 12px;
+  transition: all 0.2s;
+  cursor: pointer;
+}
+
+.character-portrait:hover {
+  background: #3d4e60;
+  transform: translateX(4px);
 }
 
 .character-portrait.active {
@@ -332,6 +339,13 @@ body {
   cursor: pointer;
   border-radius: 4px;
   font-family: 'Courier New', monospace;
+  transition: all 0.2s;
+}
+
+.character-tab:hover:not(.active):not(.resting) {
+  background: #3d4e60;
+  transform: translateY(-2px);
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
 }
 
 .character-tab.active {
@@ -602,6 +616,12 @@ body {
   padding: 8px;
   background: #2d3e50;
   border-radius: 4px;
+  transition: all 0.2s;
+}
+
+.initiative-item:hover {
+  background: #3d4e60;
+  transform: translateX(4px);
 }
 
 .initiative-item.active {
@@ -711,9 +731,15 @@ body {
   cursor: pointer;
 }
 
+.unit-token:hover .unit-circle {
+  filter: brightness(1.15);
+  stroke-width: 3;
+}
+
 .unit-circle {
   stroke: #ffffff;
   stroke-width: 2;
+  transition: all 0.2s;
 }
 
 .unit-circle.character {
