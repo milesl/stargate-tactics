@@ -216,7 +216,7 @@ body {
 .panel-top-right {
   top: 60px;
   right: 20px;
-  width: 200px;
+  width: 280px;
 }
 
 .panel-right {
@@ -230,8 +230,8 @@ body {
   bottom: 20px;
   left: 20px;
   transform: none;
-  width: 500px;
-  max-height: 420px;
+  width: 35%;
+  max-height: 60%;
 }
 
 /* Room Indicator - Top Bar */
@@ -362,7 +362,7 @@ body {
 
 #character-hand {
   display: grid;
-  grid-template-columns: repeat(5, 1fr);
+  grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));
   gap: 8px;
   max-height: 300px;
   overflow-y: auto;
@@ -445,6 +445,10 @@ body {
 }
 
 /* Execution Phase Card Display */
+#character-hand:has(.execution-cards-display) {
+  display: block;
+}
+
 .execution-cards-display {
   padding: 12px;
 }
@@ -461,7 +465,8 @@ body {
 
 .execution-cards {
   display: flex;
-  flex-direction: column;
+  flex-direction: row;
+  flex-wrap: wrap;
   gap: 10px;
 }
 
@@ -470,6 +475,8 @@ body {
   border: 2px solid #4a5568;
   border-radius: 6px;
   padding: 10px;
+  flex: 1 1 auto;
+  min-width: 140px;
 }
 
 .execution-card.current {
