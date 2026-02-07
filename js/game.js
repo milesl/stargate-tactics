@@ -568,6 +568,25 @@ const Game = {
           Combat.executeAttack(currentTurn.unit, unit, currentAction.damage, state, this.store, currentAction.stun);
         }
 
+        // Apply push if attack has push property
+        if (currentAction.push > 0) {
+          const updatedState = this.store.state;
+          const updatedTarget = updatedState.enemies.find(e => e.id === unit.id);
+          if (updatedTarget && updatedTarget.health > 0) {
+            Combat.executePush(currentTurn.unit, updatedTarget, currentAction.push, updatedState, this.store);
+          }
+        }
+
+        this.store.setHighlightedHexes([]);
+        this.completeCurrentAction();
+      }
+    } else if (currentAction.type === 'push' && type === 'enemy') {
+      // Push action - select target to push
+      const isValidTarget = currentAction.targets.some(t => t.unit.id === unit.id);
+
+      if (isValidTarget) {
+        const currentTurn = state.turn.turnOrder[state.turn.currentTurnIndex];
+        Combat.executePush(currentTurn.unit, unit, currentAction.pushDistance, state, this.store);
         this.store.setHighlightedHexes([]);
         this.completeCurrentAction();
       }
@@ -823,6 +842,24 @@ const Game = {
       this.store.setHighlightedHexes(hexes);
       this.store.setCurrentAction({ ...result, actionIndex });
       UI.addLogMessage(`Select shield target for ${unit.shortName} (Shield ${result.amount})`, 'heal');
+    } else if (result.type === 'push') {
+      const hexes = result.targets.map(t => ({
+        hex: t.hex,
+        type: 'attackable',
+      }));
+      this.store.setHighlightedHexes(hexes);
+      this.store.setCurrentAction({ ...result, actionIndex });
+
+      if (hexes.length === 0) {
+        UI.addLogMessage(`${unit.shortName} has no push targets in range`, 'move');
+        if (actionIndex === 0) {
+          setTimeout(() => this.executeCharacterAction(1), 300);
+        } else {
+          setTimeout(() => this.advanceTurn(), 300);
+        }
+      } else {
+        UI.addLogMessage(`Select target to push ${result.pushDistance} hex(es)`, 'move');
+      }
     }
   },
 

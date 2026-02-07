@@ -264,6 +264,69 @@ const Combat = {
   },
 
   /**
+   * Execute a push action - pushes target away from pusher
+   * @param {Object} pusher - The unit doing the pushing
+   * @param {Object} target - The target to push
+   * @param {number} distance - How many hexes to push
+   * @param {Object} state - Current game state
+   * @param {Object} store - Game store
+   */
+  executePush(pusher, target, distance, state, store) {
+    const direction = HexMath.getDirection(pusher.position, target.position);
+    let currentPos = { ...target.position };
+    let pushedDistance = 0;
+
+    // Try to push the target step by step
+    for (let i = 0; i < distance; i++) {
+      const nextPos = HexMath.add(currentPos, direction);
+
+      // Check if next position is valid (in bounds, not a wall, not occupied)
+      const room = this.getRoom(state);
+      if (!this.isInBounds(nextPos, room)) break;
+
+      const wallSet = new Set((room.walls || []).map(w => HexMath.key(w)));
+      if (wallSet.has(HexMath.key(nextPos))) break;
+
+      // Check if occupied (by character or enemy, but not the target itself)
+      const isOccupied = state.characters.some(c => c.id !== target.id && HexMath.equals(c.position, nextPos)) ||
+                         state.enemies.some(e => e.id !== target.id && HexMath.equals(e.position, nextPos));
+      if (isOccupied) break;
+
+      currentPos = nextPos;
+      pushedDistance++;
+    }
+
+    if (pushedDistance > 0) {
+      // Move the target to the new position
+      const isTargetEnemy = state.enemies.some(e => e.id === target.id);
+
+      if (isTargetEnemy) {
+        const enemies = state.enemies.map(e => {
+          if (e.id === target.id) {
+            return { ...e, position: { ...currentPos } };
+          }
+          return e;
+        });
+        store.setState({ enemies });
+      } else {
+        const characters = state.characters.map(c => {
+          if (c.id === target.id) {
+            return { ...c, position: { ...currentPos } };
+          }
+          return c;
+        });
+        store.setState({ characters });
+      }
+
+      UI.addLogMessage(`${target.name || target.shortName} pushed ${pushedDistance} hex(es)!`, 'move');
+    } else {
+      UI.addLogMessage(`${target.name || target.shortName} couldn't be pushed (blocked)`, 'move');
+    }
+
+    return pushedDistance;
+  },
+
+  /**
    * Execute a shield action
    */
   executeShield(caster, target, amount, state, store) {
@@ -308,6 +371,7 @@ const Combat = {
           stun: action.stun || false,
           aoe: action.aoe || false,
           aoeRadius: action.aoeRadius || 1,
+          push: action.push || 0,
         };
       }
 
@@ -372,9 +436,15 @@ const Combat = {
       }
 
       case 'push': {
-        // For MVP, just log
-        UI.addLogMessage(`${unit.shortName} uses ${action.text}`, 'move');
-        return { type: 'complete' };
+        // Get enemies in range for push targeting
+        const range = action.range || 1;
+        const targets = this.getAttackTargets(unit, range, state, 'enemy');
+        return {
+          type: 'push',
+          targets,
+          pushDistance: action.value,
+          range,
+        };
       }
 
       case 'trap': {

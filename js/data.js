@@ -42,7 +42,7 @@ const GameData = {
         id: 'jack_01',
         name: 'Suppressing Fire',
         initiative: 35,
-        top: { type: 'attack', value: 3, range: 2, text: 'Attack 3, Range 2, Push 1' },
+        top: { type: 'attack', value: 3, range: 2, push: 1, text: 'Attack 3, Range 2, Push 1' },
         bottom: { type: 'move', value: 3, text: 'Move 3' },
       },
       {

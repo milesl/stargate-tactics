@@ -111,6 +111,42 @@ const HexMath = {
   },
 
   /**
+   * Get the direction from one hex to another (as a unit vector in hex coords)
+   */
+  getDirection(from, to) {
+    const dq = to.q - from.q;
+    const dr = to.r - from.r;
+
+    // Normalize to nearest hex direction
+    // Hex directions: (1,0), (1,-1), (0,-1), (-1,0), (-1,1), (0,1)
+    const directions = [
+      { q: 1, r: 0 }, { q: 1, r: -1 }, { q: 0, r: -1 },
+      { q: -1, r: 0 }, { q: -1, r: 1 }, { q: 0, r: 1 }
+    ];
+
+    // Find the direction that best matches the vector
+    let bestDir = directions[0];
+    let bestDot = -Infinity;
+
+    for (const dir of directions) {
+      const dot = dq * dir.q + dr * dir.r;
+      if (dot > bestDot) {
+        bestDot = dot;
+        bestDir = dir;
+      }
+    }
+
+    return bestDir;
+  },
+
+  /**
+   * Add direction to hex
+   */
+  add(hex, direction) {
+    return { q: hex.q + direction.q, r: hex.r + direction.r };
+  },
+
+  /**
    * Get polygon points for SVG rendering
    */
   polygonPoints(hex, size = 40) {
