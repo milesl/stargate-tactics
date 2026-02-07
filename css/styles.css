@@ -750,6 +750,17 @@ body {
   fill: #f56565;
 }
 
+.unit-circle.enemy.melee {
+  fill: #e53e3e;
+  stroke: #fc8181;
+}
+
+.unit-circle.enemy.ranged {
+  fill: #805ad5;
+  stroke: #d4af37;
+  stroke-width: 3;
+}
+
 .unit-circle.selected {
   stroke: #d4af37;
   stroke-width: 4;

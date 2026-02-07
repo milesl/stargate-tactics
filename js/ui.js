@@ -317,6 +317,9 @@ const UI = {
     const center = this.getHexCenter(unit.position);
     const radius = this.hexSize * 0.6;
 
+    // Determine enemy subtype class
+    const enemyClass = type === 'enemy' ? (unit.ai === 'ranged' ? 'ranged' : 'melee') : '';
+
     // Create unit group
     const unitGroup = this.createSVGElement('g', {
       class: 'unit-token',
@@ -329,9 +332,20 @@ const UI = {
       cx: center.x,
       cy: center.y,
       r: radius,
-      class: `unit-circle ${type}`,
+      class: `unit-circle ${type} ${enemyClass}`.trim(),
     });
     unitGroup.appendChild(circle);
+
+    // Add tooltip
+    const title = this.createSVGElement('title');
+    if (type === 'enemy') {
+      const behavior = unit.ai === 'ranged' ? 'Ranged, keeps distance' : 'Melee, charges in';
+      title.textContent = `${unit.name} | HP: ${unit.health}/${unit.maxHealth} | ATK: ${unit.attack} | ${behavior}`;
+    } else {
+      const shieldText = unit.shield > 0 ? ` | Shield: ${unit.shield}` : '';
+      title.textContent = `${unit.name} | HP: ${unit.health}/${unit.maxHealth}${shieldText}`;
+    }
+    unitGroup.appendChild(title);
 
     // Unit label (initials or short name)
     const label = type === 'character'
