@@ -311,6 +311,9 @@ const Game = {
       this.render(state);
     });
 
+    // Set up event bus listeners
+    this.setupEventListeners();
+
     // Bind UI events
     this.bindEvents();
 
@@ -357,6 +360,89 @@ const Game = {
     // Long rest button
     UI.elements.longRest?.addEventListener('click', () => {
       this.performLongRest();
+    });
+  },
+
+  /**
+   * Set up EventBus listeners to route events to UI
+   */
+  setupEventListeners() {
+    EventBus.on('unit:moved', (data) => {
+      UI.addLogMessage(`${data.name} moved to (${data.position.q}, ${data.position.r})`, CONSTANTS.LOG_TYPES.MOVE);
+    });
+
+    EventBus.on('unit:damaged', (data) => {
+      UI.addLogMessage(
+        `${data.attackerName} attacks ${data.targetName} for ${data.damage} damage! (${data.newHealth}/${data.maxHealth})`,
+        CONSTANTS.LOG_TYPES.ATTACK
+      );
+    });
+
+    EventBus.on('unit:defeated', (data) => {
+      if (data.isCharacter) {
+        UI.addLogMessage(`${data.name} has fallen! Mission failed!`, CONSTANTS.LOG_TYPES.ATTACK);
+      } else {
+        UI.addLogMessage(`${data.name} defeated!`, CONSTANTS.LOG_TYPES.ATTACK);
+      }
+    });
+
+    EventBus.on('unit:stunned', (data) => {
+      UI.addLogMessage(`${data.name} is stunned!`, CONSTANTS.LOG_TYPES.ATTACK);
+    });
+
+    EventBus.on('attack:aoe', (data) => {
+      UI.addLogMessage(`AOE hits ${data.additionalCount} additional target(s)!`, CONSTANTS.LOG_TYPES.ATTACK);
+    });
+
+    EventBus.on('unit:healed', (data) => {
+      UI.addLogMessage(
+        `${data.healerName} heals ${data.targetName} for ${data.amount}! (${data.newHealth}/${data.maxHealth})`,
+        CONSTANTS.LOG_TYPES.HEAL
+      );
+    });
+
+    EventBus.on('unit:pushed', (data) => {
+      if (data.blocked) {
+        UI.addLogMessage(`${data.name} couldn't be pushed (blocked)`, CONSTANTS.LOG_TYPES.MOVE);
+      } else {
+        UI.addLogMessage(`${data.name} pushed ${data.distance} hex(es)!`, CONSTANTS.LOG_TYPES.MOVE);
+      }
+    });
+
+    EventBus.on('unit:shielded', (data) => {
+      UI.addLogMessage(`${data.casterName} grants ${data.targetName} Shield ${data.amount}!`, CONSTANTS.LOG_TYPES.HEAL);
+    });
+
+    EventBus.on('action:special', (data) => {
+      UI.addLogMessage(`${data.name} uses ${data.text}`, CONSTANTS.LOG_TYPES.MOVE);
+    });
+
+    EventBus.on('turn:started', (data) => {
+      if (data.type === CONSTANTS.UNIT_TYPES.CHARACTER) {
+        UI.addLogMessage(`--- ${data.unit.shortName}'s turn (Initiative: ${data.initiative}) ---`, CONSTANTS.LOG_TYPES.MOVE);
+      } else {
+        UI.addLogMessage(`--- ${data.unit.name}'s turn ---`, CONSTANTS.LOG_TYPES.ATTACK);
+      }
+    });
+
+    EventBus.on('enemy:stunned-skip', (data) => {
+      UI.addLogMessage(`${data.name} is stunned and cannot act!`, CONSTANTS.LOG_TYPES.ATTACK);
+    });
+
+    EventBus.on('enemy:wait', (data) => {
+      UI.addLogMessage(`${data.name} waits`, '');
+    });
+
+    EventBus.on('action:skipped', () => {
+      UI.addLogMessage('Action skipped', '');
+    });
+
+    EventBus.on('rest:short', (data) => {
+      UI.addLogMessage(`${data.name} takes a short rest, loses "${data.lostCard}", recovers ${data.recoveredCount} cards`, CONSTANTS.LOG_TYPES.HEAL);
+    });
+
+    EventBus.on('rest:long', (data) => {
+      UI.addLogMessage(`${data.name} takes a long rest, heals ${data.healAmount}, recovers ${data.recoveredCount} cards (skips this round)`, CONSTANTS.LOG_TYPES.HEAL);
     });
   },
 

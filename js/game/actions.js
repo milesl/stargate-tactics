@@ -121,7 +121,7 @@ Object.assign(Game, {
 
     if (!currentAction) return;
 
-    UI.addLogMessage('Action skipped', '');
+    EventBus.emit('action:skipped', {});
     this.store.setHighlightedHexes([]);
     UI.showSkipButton(false);
     this.completeCurrentAction();
@@ -161,7 +161,7 @@ Object.assign(Game, {
     });
 
     this.store.setState({ characters });
-    UI.addLogMessage(`${char.shortName} takes a short rest, loses "${lostCard.name}", recovers ${recoveredCards.length} cards`, CONSTANTS.LOG_TYPES.HEAL);
+    EventBus.emit('rest:short', { name: char.shortName, lostCard: lostCard.name, recoveredCount: recoveredCards.length });
     UI.showRestButtons(false);
   },
 
@@ -200,7 +200,7 @@ Object.assign(Game, {
     });
 
     this.store.setState({ characters: updatedCharacters });
-    UI.addLogMessage(`${char.shortName} takes a long rest, heals ${CONSTANTS.GAME.LONG_REST_HEAL}, recovers ${recoveredCards.length} cards (skips this round)`, CONSTANTS.LOG_TYPES.HEAL);
+    EventBus.emit('rest:long', { name: char.shortName, healAmount: CONSTANTS.GAME.LONG_REST_HEAL, recoveredCount: recoveredCards.length });
     UI.showRestButtons(false);
   },
 

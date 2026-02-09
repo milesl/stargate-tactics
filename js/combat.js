@@ -144,7 +144,7 @@ const Combat = {
         return c;
       });
       store.setState({ characters });
-      UI.addLogMessage(`${unit.shortName || unit.name} moved to (${targetHex.q}, ${targetHex.r})`, CONSTANTS.LOG_TYPES.MOVE);
+      EventBus.emit('unit:moved', { name: unit.shortName || unit.name, position: targetHex });
     } else {
       const enemies = state.enemies.map(e => {
         if (e.id === unit.id) {
@@ -153,7 +153,7 @@ const Combat = {
         return e;
       });
       store.setState({ enemies });
-      UI.addLogMessage(`${unit.name} moved to (${targetHex.q}, ${targetHex.r})`, CONSTANTS.LOG_TYPES.MOVE);
+      EventBus.emit('unit:moved', { name: unit.name, position: targetHex });
     }
   },
 
@@ -172,29 +172,35 @@ const Combat = {
     if (isTargetEnemy) {
       store.damageEnemy(target.id, damage);
       const newHealth = Math.max(0, target.health - damage);
-      UI.addLogMessage(
-        `${attacker.shortName || attacker.name} attacks ${target.name} for ${damage} damage! (${newHealth}/${target.maxHealth})`,
-        CONSTANTS.LOG_TYPES.ATTACK
-      );
+      EventBus.emit('unit:damaged', {
+        attackerName: attacker.shortName || attacker.name,
+        targetName: target.name,
+        damage,
+        newHealth,
+        maxHealth: target.maxHealth,
+      });
 
       if (newHealth <= 0) {
-        UI.addLogMessage(`${target.name} defeated!`, CONSTANTS.LOG_TYPES.ATTACK);
+        EventBus.emit('unit:defeated', { name: target.name, isCharacter: false });
       } else if (stun) {
         // Apply stun effect to enemy
         store.stunEnemy(target.id);
-        UI.addLogMessage(`${target.name} is stunned!`, CONSTANTS.LOG_TYPES.ATTACK);
+        EventBus.emit('unit:stunned', { name: target.name });
       }
     } else {
       store.damageCharacter(target.id, damage);
       const char = state.characters.find(c => c.id === target.id);
       const newHealth = Math.max(0, char.health - damage);
-      UI.addLogMessage(
-        `${attacker.name} attacks ${target.shortName} for ${damage} damage! (${newHealth}/${target.maxHealth})`,
-        CONSTANTS.LOG_TYPES.ATTACK
-      );
+      EventBus.emit('unit:damaged', {
+        attackerName: attacker.name,
+        targetName: target.shortName,
+        damage,
+        newHealth,
+        maxHealth: target.maxHealth,
+      });
 
       if (newHealth <= 0) {
-        UI.addLogMessage(`${target.shortName} has fallen! Mission failed!`, CONSTANTS.LOG_TYPES.ATTACK);
+        EventBus.emit('unit:defeated', { name: target.shortName, isCharacter: true });
       }
     }
 
@@ -239,7 +245,7 @@ const Combat = {
     }
 
     if (targetsToHit.length > 0) {
-      UI.addLogMessage(`AOE hits ${targetsToHit.length} additional target(s)!`, CONSTANTS.LOG_TYPES.ATTACK);
+      EventBus.emit('attack:aoe', { additionalCount: targetsToHit.length });
     }
   },
 
@@ -251,10 +257,13 @@ const Combat = {
       if (c.id === target.id) {
         const newHealth = Math.min(c.maxHealth, c.health + amount);
         const actualHeal = newHealth - c.health;
-        UI.addLogMessage(
-          `${healer.shortName} heals ${target.shortName} for ${actualHeal}! (${newHealth}/${c.maxHealth})`,
-          CONSTANTS.LOG_TYPES.HEAL
-        );
+        EventBus.emit('unit:healed', {
+          healerName: healer.shortName,
+          targetName: target.shortName,
+          amount: actualHeal,
+          newHealth,
+          maxHealth: c.maxHealth,
+        });
         return { ...c, health: newHealth };
       }
       return c;
@@ -318,9 +327,9 @@ const Combat = {
         store.setState({ characters });
       }
 
-      UI.addLogMessage(`${target.name || target.shortName} pushed ${pushedDistance} hex(es)!`, CONSTANTS.LOG_TYPES.MOVE);
+      EventBus.emit('unit:pushed', { name: target.name || target.shortName, distance: pushedDistance });
     } else {
-      UI.addLogMessage(`${target.name || target.shortName} couldn't be pushed (blocked)`, CONSTANTS.LOG_TYPES.MOVE);
+      EventBus.emit('unit:pushed', { name: target.name || target.shortName, blocked: true });
     }
 
     return pushedDistance;
@@ -332,10 +341,11 @@ const Combat = {
   executeShield(caster, target, amount, state, store) {
     const characters = state.characters.map(c => {
       if (c.id === target.id) {
-        UI.addLogMessage(
-          `${caster.shortName} grants ${target.shortName} Shield ${amount}!`,
-          CONSTANTS.LOG_TYPES.HEAL
-        );
+        EventBus.emit('unit:shielded', {
+          casterName: caster.shortName,
+          targetName: target.shortName,
+          amount,
+        });
         return { ...c, shield: c.shield + amount };
       }
       return c;
@@ -425,13 +435,13 @@ const Combat = {
 
       case CONSTANTS.ACTION_TYPES.BUFF: {
         // For MVP, just log the buff
-        UI.addLogMessage(`${unit.shortName} uses ${action.text}`, CONSTANTS.LOG_TYPES.HEAL);
+        EventBus.emit('action:special', { name: unit.shortName, text: action.text });
         return { type: 'complete' };
       }
 
       case CONSTANTS.ACTION_TYPES.SPECIAL: {
         // Handle special actions
-        UI.addLogMessage(`${unit.shortName} uses special: ${action.text}`, CONSTANTS.LOG_TYPES.MOVE);
+        EventBus.emit('action:special', { name: unit.shortName, text: action.text });
         return { type: 'complete' };
       }
 
@@ -449,7 +459,7 @@ const Combat = {
 
       case CONSTANTS.ACTION_TYPES.TRAP: {
         // For MVP, just log
-        UI.addLogMessage(`${unit.shortName} sets a trap: ${action.text}`, CONSTANTS.LOG_TYPES.MOVE);
+        EventBus.emit('action:special', { name: unit.shortName, text: `sets a trap: ${action.text}` });
         return { type: 'complete' };
       }
 

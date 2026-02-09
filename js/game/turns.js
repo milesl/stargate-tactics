@@ -106,10 +106,10 @@ Object.assign(Game, {
     }
 
     if (currentTurn.type === CONSTANTS.UNIT_TYPES.CHARACTER) {
-      UI.addLogMessage(`--- ${currentTurn.unit.shortName}'s turn (Initiative: ${currentTurn.initiative}) ---`, CONSTANTS.LOG_TYPES.MOVE);
+      EventBus.emit('turn:started', { unit: currentTurn.unit, type: CONSTANTS.UNIT_TYPES.CHARACTER, initiative: currentTurn.initiative });
       this.executeCharacterAction(0);
     } else {
-      UI.addLogMessage(`--- ${currentTurn.unit.name}'s turn ---`, CONSTANTS.LOG_TYPES.ATTACK);
+      EventBus.emit('turn:started', { unit: currentTurn.unit, type: CONSTANTS.UNIT_TYPES.ENEMY, initiative: currentTurn.initiative });
       this.executeEnemyTurn(currentTurn);
     }
   },
@@ -285,10 +285,10 @@ Object.assign(Game, {
     } else {
       // Wait/skip - check if stunned
       if (enemy.stunned) {
-        UI.addLogMessage(`${enemy.name} is stunned and cannot act!`, CONSTANTS.LOG_TYPES.ATTACK);
+        EventBus.emit('enemy:stunned-skip', { name: enemy.name });
         this.store.clearEnemyStun(enemy.id);
       } else {
-        UI.addLogMessage(`${enemy.name} waits`, '');
+        EventBus.emit('enemy:wait', { name: enemy.name });
       }
       setTimeout(() => {
         this.advanceTurn();
