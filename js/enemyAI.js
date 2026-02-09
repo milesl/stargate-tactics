@@ -23,12 +23,12 @@ const EnemyAI = {
     const distance = HexMath.distance(enemy.position, target.position);
 
     // Melee AI (Jaffa Warrior)
-    if (enemy.ai === 'melee') {
+    if (enemy.ai === CONSTANTS.AI_TYPES.MELEE) {
       return this.decideMeleeAction(enemy, target, distance, state);
     }
 
     // Ranged AI (Serpent Guard)
-    if (enemy.ai === 'ranged') {
+    if (enemy.ai === CONSTANTS.AI_TYPES.RANGED) {
       return this.decideRangedAction(enemy, target, distance, state);
     }
 
@@ -42,7 +42,7 @@ const EnemyAI = {
     // If adjacent, attack
     if (distance <= enemy.range) {
       return {
-        type: 'attack',
+        type: CONSTANTS.ACTION_TYPES.ATTACK,
         target: target,
       };
     }
@@ -63,7 +63,7 @@ const EnemyAI = {
       }
 
       return {
-        type: 'move',
+        type: CONSTANTS.ACTION_TYPES.MOVE,
         position: moveTarget,
       };
     }
@@ -78,7 +78,7 @@ const EnemyAI = {
     // If within attack range, attack
     if (distance <= enemy.range && distance > 1) {
       return {
-        type: 'attack',
+        type: CONSTANTS.ACTION_TYPES.ATTACK,
         target: target,
       };
     }
@@ -96,13 +96,13 @@ const EnemyAI = {
           };
         }
         return {
-          type: 'move',
+          type: CONSTANTS.ACTION_TYPES.MOVE,
           position: retreatPos,
         };
       }
       // Can't retreat, attack anyway
       return {
-        type: 'attack',
+        type: CONSTANTS.ACTION_TYPES.ATTACK,
         target: target,
       };
     }
@@ -120,7 +120,7 @@ const EnemyAI = {
           };
         }
         return {
-          type: 'move',
+          type: CONSTANTS.ACTION_TYPES.MOVE,
           position: moveTarget,
         };
       }

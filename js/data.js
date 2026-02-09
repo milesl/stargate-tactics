@@ -6,38 +6,38 @@ const GameData = {
   // Character definitions
   characters: [
     {
-      id: 'jack',
+      id: CONSTANTS.CHARACTER_IDS.JACK,
       name: "Jack O'Neill",
       shortName: 'Jack',
       maxHealth: 10,
-      deck: 'jack',
+      deck: CONSTANTS.CHARACTER_IDS.JACK,
     },
     {
-      id: 'sam',
+      id: CONSTANTS.CHARACTER_IDS.SAM,
       name: 'Samantha Carter',
       shortName: 'Sam',
       maxHealth: 8,
-      deck: 'sam',
+      deck: CONSTANTS.CHARACTER_IDS.SAM,
     },
     {
-      id: 'daniel',
+      id: CONSTANTS.CHARACTER_IDS.DANIEL,
       name: 'Daniel Jackson',
       shortName: 'Daniel',
       maxHealth: 7,
-      deck: 'daniel',
+      deck: CONSTANTS.CHARACTER_IDS.DANIEL,
     },
     {
-      id: 'tealc',
+      id: CONSTANTS.CHARACTER_IDS.TEALC,
       name: "Teal'c",
       shortName: "Teal'c",
       maxHealth: 12,
-      deck: 'tealc',
+      deck: CONSTANTS.CHARACTER_IDS.TEALC,
     },
   ],
 
   // Card decks
   cards: {
-    jack: [
+    [CONSTANTS.CHARACTER_IDS.JACK]: [
       {
         id: 'jack_01',
         name: 'Suppressing Fire',
@@ -110,7 +110,7 @@ const GameData = {
       },
     ],
 
-    sam: [
+    [CONSTANTS.CHARACTER_IDS.SAM]: [
       {
         id: 'sam_01',
         name: 'Zat Gun',
@@ -183,7 +183,7 @@ const GameData = {
       },
     ],
 
-    daniel: [
+    [CONSTANTS.CHARACTER_IDS.DANIEL]: [
       {
         id: 'daniel_01',
         name: 'Field Medicine',
@@ -256,7 +256,7 @@ const GameData = {
       },
     ],
 
-    tealc: [
+    [CONSTANTS.CHARACTER_IDS.TEALC]: [
       {
         id: 'tealc_01',
         name: 'Staff Blast',
@@ -332,22 +332,22 @@ const GameData = {
 
   // Enemy definitions
   enemies: {
-    jaffa_warrior: {
+    [CONSTANTS.ENEMY_IDS.JAFFA_WARRIOR]: {
       name: 'Jaffa Warrior',
       maxHealth: 6,
       move: 2,
       attack: 3,
       range: 1,
-      ai: 'melee',
+      ai: CONSTANTS.AI_TYPES.MELEE,
     },
 
-    jaffa_serpent_guard: {
+    [CONSTANTS.ENEMY_IDS.JAFFA_SERPENT_GUARD]: {
       name: 'Serpent Guard',
       maxHealth: 10,
       move: 3,
       attack: 4,
       range: 2,
-      ai: 'ranged',
+      ai: CONSTANTS.AI_TYPES.RANGED,
     },
   },
 
@@ -365,10 +365,10 @@ const GameData = {
         { q: 1, r: 1 },
       ],
       enemies: [
-        { type: 'jaffa_warrior', position: { q: 5, r: 3 } },
-        { type: 'jaffa_warrior', position: { q: 4, r: 4 } },
-        { type: 'jaffa_warrior', position: { q: 6, r: 3 } },
-        { type: 'jaffa_warrior', position: { q: 5, r: 5 } },
+        { type: CONSTANTS.ENEMY_IDS.JAFFA_WARRIOR, position: { q: 5, r: 3 } },
+        { type: CONSTANTS.ENEMY_IDS.JAFFA_WARRIOR, position: { q: 4, r: 4 } },
+        { type: CONSTANTS.ENEMY_IDS.JAFFA_WARRIOR, position: { q: 6, r: 3 } },
+        { type: CONSTANTS.ENEMY_IDS.JAFFA_WARRIOR, position: { q: 5, r: 5 } },
       ],
       walls: [
         // Define wall hexes (perimeter)
@@ -386,11 +386,11 @@ const GameData = {
         { q: 1, r: 1 },
       ],
       enemies: [
-        { type: 'jaffa_warrior', position: { q: 5, r: 2 } },
-        { type: 'jaffa_warrior', position: { q: 6, r: 3 } },
-        { type: 'jaffa_warrior', position: { q: 5, r: 4 } },
-        { type: 'jaffa_warrior', position: { q: 7, r: 2 } },
-        { type: 'jaffa_serpent_guard', position: { q: 6, r: 4 } },
+        { type: CONSTANTS.ENEMY_IDS.JAFFA_WARRIOR, position: { q: 5, r: 2 } },
+        { type: CONSTANTS.ENEMY_IDS.JAFFA_WARRIOR, position: { q: 6, r: 3 } },
+        { type: CONSTANTS.ENEMY_IDS.JAFFA_WARRIOR, position: { q: 5, r: 4 } },
+        { type: CONSTANTS.ENEMY_IDS.JAFFA_WARRIOR, position: { q: 7, r: 2 } },
+        { type: CONSTANTS.ENEMY_IDS.JAFFA_SERPENT_GUARD, position: { q: 6, r: 4 } },
       ],
       walls: [],
     },
@@ -406,11 +406,11 @@ const GameData = {
         { q: 1, r: 1 },
       ],
       enemies: [
-        { type: 'jaffa_warrior', position: { q: 6, r: 3 } },
-        { type: 'jaffa_warrior', position: { q: 7, r: 4 } },
-        { type: 'jaffa_warrior', position: { q: 6, r: 5 } },
-        { type: 'jaffa_warrior', position: { q: 8, r: 4 } },
-        { type: 'jaffa_serpent_guard', position: { q: 7, r: 6 } },
+        { type: CONSTANTS.ENEMY_IDS.JAFFA_WARRIOR, position: { q: 6, r: 3 } },
+        { type: CONSTANTS.ENEMY_IDS.JAFFA_WARRIOR, position: { q: 7, r: 4 } },
+        { type: CONSTANTS.ENEMY_IDS.JAFFA_WARRIOR, position: { q: 6, r: 5 } },
+        { type: CONSTANTS.ENEMY_IDS.JAFFA_WARRIOR, position: { q: 8, r: 4 } },
+        { type: CONSTANTS.ENEMY_IDS.JAFFA_SERPENT_GUARD, position: { q: 7, r: 6 } },
       ],
       artifactPosition: { q: 7, r: 5 },
       walls: [],

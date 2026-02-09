@@ -18,8 +18,7 @@ const Game = {
     // Create game store
     this.store = createStore({
       state: () => ({
-        // Game phase: 'menu', 'briefing', 'playing', 'victory', 'defeat'
-        phase: 'briefing',
+        phase: CONSTANTS.PHASES.BRIEFING,
 
         // Current room (1-3)
         currentRoom: 1,
@@ -32,7 +31,7 @@ const Game = {
 
         // Current turn state
         turn: {
-          phase: 'selection', // 'selection', 'execution', 'enemy'
+          phase: CONSTANTS.PHASES.SELECTION,
           selectedCards: {}, // { characterId: { cardA, cardB, useTopOfA } }
           turnOrder: [],
           currentTurnIndex: 0,
@@ -70,7 +69,7 @@ const Game = {
             }
 
             // Skip characters who can't play (need rest or exhausted)
-            if (char.hand.length < 2) {
+            if (char.hand.length < CONSTANTS.GAME.CARDS_TO_PLAY) {
               // If they have discard, they need to rest first
               if (char.discard.length > 0) {
                 return false; // Need to rest
@@ -212,7 +211,7 @@ const Game = {
             this.setState({ characters });
 
             if (char.health <= 0) {
-              this.setState({ phase: 'defeat' });
+              this.setState({ phase: CONSTANTS.PHASES.DEFEAT });
             }
           }
         },
@@ -257,8 +256,8 @@ const Game = {
         advanceRoom() {
           const nextRoom = this.state.currentRoom + 1;
 
-          if (nextRoom > 3) {
-            this.setState({ phase: 'victory' });
+          if (nextRoom > CONSTANTS.GAME.TOTAL_ROOMS) {
+            this.setState({ phase: CONSTANTS.PHASES.VICTORY });
           } else {
             // Move characters to new starting positions
             const room = GameData.rooms[nextRoom - 1];
@@ -280,7 +279,7 @@ const Game = {
             turn: {
               ...this.state.turn,
               selectedCards: {},
-              phase: 'selection',
+              phase: CONSTANTS.PHASES.SELECTION,
               currentAction: null,
             },
           });
@@ -384,7 +383,7 @@ const Game = {
     const charId = state.ui.selectedCharacter;
     const char = state.characters.find(c => c.id === charId);
 
-    if (!char || char.hand.length >= 2) return;
+    if (!char || char.hand.length >= CONSTANTS.GAME.CARDS_TO_PLAY) return;
 
     // Recover all discarded cards except one random
     const discardCount = char.discard.length;
@@ -410,7 +409,7 @@ const Game = {
     });
 
     this.store.setState({ characters });
-    UI.addLogMessage(`${char.shortName} takes a short rest, loses "${lostCard.name}", recovers ${recoveredCards.length} cards`, 'heal');
+    UI.addLogMessage(`${char.shortName} takes a short rest, loses "${lostCard.name}", recovers ${recoveredCards.length} cards`, CONSTANTS.LOG_TYPES.HEAL);
     UI.showRestButtons(false);
   },
 
@@ -422,14 +421,14 @@ const Game = {
     const charId = state.ui.selectedCharacter;
     const char = state.characters.find(c => c.id === charId);
 
-    if (!char || char.hand.length >= 2) return;
+    if (!char || char.hand.length >= CONSTANTS.GAME.CARDS_TO_PLAY) return;
 
     // Recover all discarded cards and heal 2
     const recoveredCards = [...char.discard];
 
     const characters = state.characters.map(c => {
       if (c.id === charId) {
-        const newHealth = Math.min(c.maxHealth, c.health + 2);
+        const newHealth = Math.min(c.maxHealth, c.health + CONSTANTS.GAME.LONG_REST_HEAL);
         return {
           ...c,
           hand: [...c.hand, ...recoveredCards],
@@ -449,7 +448,7 @@ const Game = {
     });
 
     this.store.setState({ characters: updatedCharacters });
-    UI.addLogMessage(`${char.shortName} takes a long rest, heals 2, recovers ${recoveredCards.length} cards (skips this round)`, 'heal');
+    UI.addLogMessage(`${char.shortName} takes a long rest, heals ${CONSTANTS.GAME.LONG_REST_HEAL}, recovers ${recoveredCards.length} cards (skips this round)`, CONSTANTS.LOG_TYPES.HEAL);
     UI.showRestButtons(false);
   },
 
@@ -461,12 +460,12 @@ const Game = {
 
     this.store.initializeCharacters();
     this.store.initializeEnemies(0);
-    this.store.setPhase('playing');
-    this.store.setSelectedCharacter('jack');
+    this.store.setPhase(CONSTANTS.PHASES.PLAYING);
+    this.store.setSelectedCharacter(CONSTANTS.CHARACTER_IDS.JACK);
 
     UI.showScreen('game-screen');
     UI.updateRoomIndicator(1, GameData.rooms[0].name);
-    UI.addLogMessage(`Mission started: ${GameData.rooms[0].name}`, 'move');
+    UI.addLogMessage(`Mission started: ${GameData.rooms[0].name}`, CONSTANTS.LOG_TYPES.MOVE);
     UI.hideActionButtons();
 
     this.render(this.store.state);
@@ -477,12 +476,12 @@ const Game = {
    */
   restartGame() {
     this.store.reset({
-      phase: 'briefing',
+      phase: CONSTANTS.PHASES.BRIEFING,
       currentRoom: 1,
       characters: [],
       enemies: [],
       turn: {
-        phase: 'selection',
+        phase: CONSTANTS.PHASES.SELECTION,
         selectedCards: {},
         turnOrder: [],
         currentTurnIndex: 0,
@@ -522,7 +521,7 @@ const Game = {
 
     if (!currentAction) return;
 
-    if (currentAction.type === 'move') {
+    if (currentAction.type === CONSTANTS.ACTION_TYPES.MOVE) {
       // Check if hex is in reachable list
       const isReachable = currentAction.reachableHexes.some(
         rh => HexMath.equals(rh.hex, hex)
@@ -552,7 +551,7 @@ const Game = {
 
     if (!currentAction) return;
 
-    if (currentAction.type === 'attack' && type === 'enemy') {
+    if (currentAction.type === CONSTANTS.ACTION_TYPES.ATTACK && type === CONSTANTS.UNIT_TYPES.ENEMY) {
       // Check if enemy is a valid target
       const isValidTarget = currentAction.targets.some(t => t.unit.id === unit.id);
 
@@ -580,7 +579,7 @@ const Game = {
         this.store.setHighlightedHexes([]);
         this.completeCurrentAction();
       }
-    } else if (currentAction.type === 'push' && type === 'enemy') {
+    } else if (currentAction.type === CONSTANTS.ACTION_TYPES.PUSH && type === CONSTANTS.UNIT_TYPES.ENEMY) {
       // Push action - select target to push
       const isValidTarget = currentAction.targets.some(t => t.unit.id === unit.id);
 
@@ -590,7 +589,7 @@ const Game = {
         this.store.setHighlightedHexes([]);
         this.completeCurrentAction();
       }
-    } else if (currentAction.type === 'heal' && type === 'character') {
+    } else if (currentAction.type === CONSTANTS.ACTION_TYPES.HEAL && type === CONSTANTS.UNIT_TYPES.CHARACTER) {
       const isValidTarget = currentAction.targets.some(t => t.unit.id === unit.id);
 
       if (isValidTarget) {
@@ -599,7 +598,7 @@ const Game = {
         this.store.setHighlightedHexes([]);
         this.completeCurrentAction();
       }
-    } else if (currentAction.type === 'shield' && type === 'character') {
+    } else if (currentAction.type === CONSTANTS.ACTION_TYPES.SHIELD && type === CONSTANTS.UNIT_TYPES.CHARACTER) {
       const currentTurn = state.turn.turnOrder[state.turn.currentTurnIndex];
       Combat.executeShield(currentTurn.unit, unit, currentAction.amount, state, this.store);
       this.store.setHighlightedHexes([]);
@@ -619,13 +618,13 @@ const Game = {
       this.store.setCurrentAction(null);
       setTimeout(() => {
         this.executeCharacterAction(1);
-      }, 300);
+      }, CONSTANTS.TIMING.ACTION_DELAY);
     } else {
       // Both actions done, advance turn
       this.store.setCurrentAction(null);
       setTimeout(() => {
         this.advanceTurn();
-      }, 300);
+      }, CONSTANTS.TIMING.ACTION_DELAY);
     }
   },
 
@@ -638,14 +637,14 @@ const Game = {
       return;
     }
 
-    UI.addLogMessage('Cards confirmed! Calculating initiative...', 'move');
+    UI.addLogMessage('Cards confirmed! Calculating initiative...', CONSTANTS.LOG_TYPES.MOVE);
 
     const turnOrder = this.buildTurnOrder();
 
     this.store.setState({
       turn: {
         ...this.store.state.turn,
-        phase: 'execution',
+        phase: CONSTANTS.PHASES.EXECUTION,
         turnOrder: turnOrder,
         currentTurnIndex: 0,
         currentAction: null,
@@ -654,7 +653,7 @@ const Game = {
 
     setTimeout(() => {
       this.executeNextTurn();
-    }, 500);
+    }, CONSTANTS.TIMING.ENEMY_TURN_DELAY);
   },
 
   /**
@@ -668,7 +667,7 @@ const Game = {
       if (selection?.cardA) {
         order.push({
           unit: char,
-          type: 'character',
+          type: CONSTANTS.UNIT_TYPES.CHARACTER,
           initiative: selection.cardA.initiative,
           cardA: selection.cardA,
           cardB: selection.cardB,
@@ -680,8 +679,8 @@ const Game = {
     for (const enemy of this.store.state.enemies) {
       order.push({
         unit: enemy,
-        type: 'enemy',
-        initiative: enemy.type === 'jaffa_serpent_guard' ? 40 : 50,
+        type: CONSTANTS.UNIT_TYPES.ENEMY,
+        initiative: enemy.type === CONSTANTS.ENEMY_IDS.JAFFA_SERPENT_GUARD ? 40 : 50,
       });
     }
 
@@ -698,7 +697,7 @@ const Game = {
     const { turnOrder, currentTurnIndex } = state.turn;
 
     // Check for defeat (character died)
-    if (state.phase === 'defeat') {
+    if (state.phase === CONSTANTS.PHASES.DEFEAT) {
       return;
     }
 
@@ -716,7 +715,7 @@ const Game = {
     const currentTurn = turnOrder[currentTurnIndex];
 
     // Check if unit is still alive
-    if (currentTurn.type === 'character') {
+    if (currentTurn.type === CONSTANTS.UNIT_TYPES.CHARACTER) {
       const char = state.characters.find(c => c.id === currentTurn.unit.id);
       if (!char || char.health <= 0) {
         this.advanceTurn();
@@ -730,11 +729,11 @@ const Game = {
       }
     }
 
-    if (currentTurn.type === 'character') {
-      UI.addLogMessage(`--- ${currentTurn.unit.shortName}'s turn (Initiative: ${currentTurn.initiative}) ---`, 'move');
+    if (currentTurn.type === CONSTANTS.UNIT_TYPES.CHARACTER) {
+      UI.addLogMessage(`--- ${currentTurn.unit.shortName}'s turn (Initiative: ${currentTurn.initiative}) ---`, CONSTANTS.LOG_TYPES.MOVE);
       this.executeCharacterAction(0);
     } else {
-      UI.addLogMessage(`--- ${currentTurn.unit.name}'s turn ---`, 'attack');
+      UI.addLogMessage(`--- ${currentTurn.unit.name}'s turn ---`, CONSTANTS.LOG_TYPES.ATTACK);
       this.executeEnemyTurn(currentTurn);
     }
   },
@@ -771,94 +770,94 @@ const Game = {
       if (actionIndex === 0) {
         setTimeout(() => {
           this.executeCharacterAction(1);
-        }, 300);
+        }, CONSTANTS.TIMING.ACTION_DELAY);
       } else {
         setTimeout(() => {
           this.advanceTurn();
-        }, 300);
+        }, CONSTANTS.TIMING.ACTION_DELAY);
       }
-    } else if (result.type === 'move') {
+    } else if (result.type === CONSTANTS.ACTION_TYPES.MOVE) {
       // Show movement options
       const hexes = result.reachableHexes.map(rh => ({
         hex: rh.hex,
-        type: 'reachable',
+        type: CONSTANTS.HIGHLIGHT_TYPES.REACHABLE,
       }));
       this.store.setHighlightedHexes(hexes);
       this.store.setCurrentAction({ ...result, actionIndex });
 
       if (hexes.length === 0) {
-        UI.addLogMessage(`${unit.shortName} cannot move (blocked)`, 'move');
+        UI.addLogMessage(`${unit.shortName} cannot move (blocked)`, CONSTANTS.LOG_TYPES.MOVE);
         if (actionIndex === 0) {
-          setTimeout(() => this.executeCharacterAction(1), 300);
+          setTimeout(() => this.executeCharacterAction(1), CONSTANTS.TIMING.ACTION_DELAY);
         } else {
-          setTimeout(() => this.advanceTurn(), 300);
+          setTimeout(() => this.advanceTurn(), CONSTANTS.TIMING.ACTION_DELAY);
         }
       } else {
-        UI.addLogMessage(`Select destination for ${unit.shortName} (Move ${action.value})`, 'move');
+        UI.addLogMessage(`Select destination for ${unit.shortName} (Move ${action.value})`, CONSTANTS.LOG_TYPES.MOVE);
       }
-    } else if (result.type === 'attack') {
+    } else if (result.type === CONSTANTS.ACTION_TYPES.ATTACK) {
       // Show attack targets
       const hexes = result.targets.map(t => ({
         hex: t.hex,
-        type: 'attackable',
+        type: CONSTANTS.HIGHLIGHT_TYPES.ATTACKABLE,
       }));
       this.store.setHighlightedHexes(hexes);
       this.store.setCurrentAction({ ...result, actionIndex });
 
       if (hexes.length === 0) {
-        UI.addLogMessage(`${unit.shortName} has no targets in range`, 'attack');
+        UI.addLogMessage(`${unit.shortName} has no targets in range`, CONSTANTS.LOG_TYPES.ATTACK);
         if (actionIndex === 0) {
-          setTimeout(() => this.executeCharacterAction(1), 300);
+          setTimeout(() => this.executeCharacterAction(1), CONSTANTS.TIMING.ACTION_DELAY);
         } else {
-          setTimeout(() => this.advanceTurn(), 300);
+          setTimeout(() => this.advanceTurn(), CONSTANTS.TIMING.ACTION_DELAY);
         }
       } else {
         const aoeText = result.aoe ? ', AOE' : '';
-        UI.addLogMessage(`Select target for ${unit.shortName}'s attack (${action.value} damage, range ${result.range}${aoeText})`, 'attack');
+        UI.addLogMessage(`Select target for ${unit.shortName}'s attack (${action.value} damage, range ${result.range}${aoeText})`, CONSTANTS.LOG_TYPES.ATTACK);
       }
-    } else if (result.type === 'heal') {
+    } else if (result.type === CONSTANTS.ACTION_TYPES.HEAL) {
       const hexes = result.targets.map(t => ({
         hex: t.hex,
-        type: 'reachable',
+        type: CONSTANTS.HIGHLIGHT_TYPES.REACHABLE,
       }));
       this.store.setHighlightedHexes(hexes);
       this.store.setCurrentAction({ ...result, actionIndex });
 
       if (hexes.length === 0) {
-        UI.addLogMessage(`${unit.shortName} has no heal targets`, 'heal');
+        UI.addLogMessage(`${unit.shortName} has no heal targets`, CONSTANTS.LOG_TYPES.HEAL);
         if (actionIndex === 0) {
-          setTimeout(() => this.executeCharacterAction(1), 300);
+          setTimeout(() => this.executeCharacterAction(1), CONSTANTS.TIMING.ACTION_DELAY);
         } else {
-          setTimeout(() => this.advanceTurn(), 300);
+          setTimeout(() => this.advanceTurn(), CONSTANTS.TIMING.ACTION_DELAY);
         }
       } else {
-        UI.addLogMessage(`Select heal target for ${unit.shortName} (Heal ${result.amount})`, 'heal');
+        UI.addLogMessage(`Select heal target for ${unit.shortName} (Heal ${result.amount})`, CONSTANTS.LOG_TYPES.HEAL);
       }
-    } else if (result.type === 'shield') {
+    } else if (result.type === CONSTANTS.ACTION_TYPES.SHIELD) {
       const hexes = result.targets.map(t => ({
         hex: t.hex,
-        type: 'reachable',
+        type: CONSTANTS.HIGHLIGHT_TYPES.REACHABLE,
       }));
       this.store.setHighlightedHexes(hexes);
       this.store.setCurrentAction({ ...result, actionIndex });
-      UI.addLogMessage(`Select shield target for ${unit.shortName} (Shield ${result.amount})`, 'heal');
-    } else if (result.type === 'push') {
+      UI.addLogMessage(`Select shield target for ${unit.shortName} (Shield ${result.amount})`, CONSTANTS.LOG_TYPES.HEAL);
+    } else if (result.type === CONSTANTS.ACTION_TYPES.PUSH) {
       const hexes = result.targets.map(t => ({
         hex: t.hex,
-        type: 'attackable',
+        type: CONSTANTS.HIGHLIGHT_TYPES.ATTACKABLE,
       }));
       this.store.setHighlightedHexes(hexes);
       this.store.setCurrentAction({ ...result, actionIndex });
 
       if (hexes.length === 0) {
-        UI.addLogMessage(`${unit.shortName} has no push targets in range`, 'move');
+        UI.addLogMessage(`${unit.shortName} has no push targets in range`, CONSTANTS.LOG_TYPES.MOVE);
         if (actionIndex === 0) {
-          setTimeout(() => this.executeCharacterAction(1), 300);
+          setTimeout(() => this.executeCharacterAction(1), CONSTANTS.TIMING.ACTION_DELAY);
         } else {
-          setTimeout(() => this.advanceTurn(), 300);
+          setTimeout(() => this.advanceTurn(), CONSTANTS.TIMING.ACTION_DELAY);
         }
       } else {
-        UI.addLogMessage(`Select target to push ${result.pushDistance} hex(es)`, 'move');
+        UI.addLogMessage(`Select target to push ${result.pushDistance} hex(es)`, CONSTANTS.LOG_TYPES.MOVE);
       }
     }
   },
@@ -870,7 +869,7 @@ const Game = {
     const state = this.store.state;
 
     // Check for defeat before executing
-    if (state.phase === 'defeat') {
+    if (state.phase === CONSTANTS.PHASES.DEFEAT) {
       return;
     }
 
@@ -884,16 +883,16 @@ const Game = {
     // Use enemy AI to decide action
     const action = EnemyAI.decideAction(enemy, state);
 
-    if (action.type === 'attack') {
+    if (action.type === CONSTANTS.ACTION_TYPES.ATTACK) {
       Combat.executeAttack(enemy, action.target, enemy.attack, state, this.store);
       setTimeout(() => {
         this.advanceTurn();
-      }, 500);
-    } else if (action.type === 'move') {
+      }, CONSTANTS.TIMING.ENEMY_TURN_DELAY);
+    } else if (action.type === CONSTANTS.ACTION_TYPES.MOVE) {
       Combat.executeMove(enemy, action.position, state, this.store);
       setTimeout(() => {
         this.advanceTurn();
-      }, 500);
+      }, CONSTANTS.TIMING.ENEMY_TURN_DELAY);
     } else if (action.type === 'moveAndAttack') {
       Combat.executeMove(enemy, action.position, state, this.store);
       setTimeout(() => {
@@ -905,19 +904,19 @@ const Game = {
         }
         setTimeout(() => {
           this.advanceTurn();
-        }, 500);
-      }, 300);
+        }, CONSTANTS.TIMING.ENEMY_TURN_DELAY);
+      }, CONSTANTS.TIMING.ACTION_DELAY);
     } else {
       // Wait/skip - check if stunned
       if (enemy.stunned) {
-        UI.addLogMessage(`${enemy.name} is stunned and cannot act!`, 'attack');
+        UI.addLogMessage(`${enemy.name} is stunned and cannot act!`, CONSTANTS.LOG_TYPES.ATTACK);
         this.store.clearEnemyStun(enemy.id);
       } else {
         UI.addLogMessage(`${enemy.name} waits`, '');
       }
       setTimeout(() => {
         this.advanceTurn();
-      }, 300);
+      }, CONSTANTS.TIMING.ACTION_DELAY);
     }
   },
 
@@ -948,16 +947,16 @@ const Game = {
     const state = this.store.state;
 
     // Only check in room 3 when all enemies are defeated
-    if (state.currentRoom !== 3 || state.enemies.length > 0) {
+    if (state.currentRoom !== CONSTANTS.GAME.TOTAL_ROOMS || state.enemies.length > 0) {
       return false;
     }
 
-    const room = GameData.rooms[2]; // Room 3 (0-indexed)
+    const room = GameData.rooms[CONSTANTS.GAME.TOTAL_ROOMS - 1];
     const artifactPos = room.artifactPosition;
 
     if (artifactPos && HexMath.equals(hex, artifactPos)) {
-      UI.addLogMessage('Artifact retrieved! Mission successful!', 'heal');
-      this.store.setPhase('victory');
+      UI.addLogMessage('Artifact retrieved! Mission successful!', CONSTANTS.LOG_TYPES.HEAL);
+      this.store.setPhase(CONSTANTS.PHASES.VICTORY);
       return true;
     }
 
@@ -986,33 +985,33 @@ const Game = {
     // Check win condition
     if (this.store.state.enemies.length === 0) {
       const currentRoom = this.store.state.currentRoom;
-      if (currentRoom < 3) {
-        UI.addLogMessage(`Room ${currentRoom} cleared! Advancing...`, 'heal');
+      if (currentRoom < CONSTANTS.GAME.TOTAL_ROOMS) {
+        UI.addLogMessage(`Room ${currentRoom} cleared! Advancing...`, CONSTANTS.LOG_TYPES.HEAL);
         this.store.advanceRoom();
         this.store.clearCardSelections();
-        UI.addLogMessage(`Entering: ${GameData.rooms[currentRoom].name}`, 'move');
+        UI.addLogMessage(`Entering: ${GameData.rooms[currentRoom].name}`, CONSTANTS.LOG_TYPES.MOVE);
       } else {
         // Room 3 cleared - check if anyone is already on artifact
-        const room = GameData.rooms[2];
+        const room = GameData.rooms[CONSTANTS.GAME.TOTAL_ROOMS - 1];
         const artifactPos = room.artifactPosition;
         const onArtifact = this.store.state.characters.some(
           c => c.health > 0 && HexMath.equals(c.position, artifactPos)
         );
 
         if (onArtifact) {
-          UI.addLogMessage('Artifact retrieved! Mission successful!', 'heal');
-          this.store.setPhase('victory');
+          UI.addLogMessage('Artifact retrieved! Mission successful!', CONSTANTS.LOG_TYPES.HEAL);
+          this.store.setPhase(CONSTANTS.PHASES.VICTORY);
         } else {
-          UI.addLogMessage('Room cleared! Collect the artifact to complete the mission!', 'heal');
+          UI.addLogMessage('Room cleared! Collect the artifact to complete the mission!', CONSTANTS.LOG_TYPES.HEAL);
           this.store.clearCardSelections();
         }
       }
     } else {
       // Check if any character can still play (has cards)
-      const canContinue = this.store.state.characters.some(c => c.hand.length >= 2);
+      const canContinue = this.store.state.characters.some(c => c.hand.length >= CONSTANTS.GAME.CARDS_TO_PLAY);
       if (!canContinue) {
-        UI.addLogMessage('No cards remaining! Mission failed!', 'attack');
-        this.store.setPhase('defeat');
+        UI.addLogMessage('No cards remaining! Mission failed!', CONSTANTS.LOG_TYPES.ATTACK);
+        this.store.setPhase(CONSTANTS.PHASES.DEFEAT);
       } else {
         this.store.clearCardSelections();
         UI.addLogMessage('Select cards for next round.', '');
@@ -1024,7 +1023,7 @@ const Game = {
    * Main render function
    */
   render(state) {
-    if (state.phase === 'playing') {
+    if (state.phase === CONSTANTS.PHASES.PLAYING) {
       const room = GameData.rooms[state.currentRoom - 1];
 
       // Update room indicator
@@ -1033,7 +1032,7 @@ const Game = {
       UI.renderHexGrid(room, state.characters, state.enemies, state.ui.highlightedHexes);
       UI.renderCharacterPortraits(state.characters);
 
-      if (state.turn.phase === 'selection') {
+      if (state.turn.phase === CONSTANTS.PHASES.SELECTION) {
         UI.renderCharacterTabs(
           state.characters,
           state.ui.selectedCharacter,
@@ -1046,11 +1045,11 @@ const Game = {
           const charSelection = state.turn.selectedCards[selectedChar.id] || {};
 
           // Check if character needs rest
-          if (selectedChar.hand.length < 2 && selectedChar.discard.length > 0) {
+          if (selectedChar.hand.length < CONSTANTS.GAME.CARDS_TO_PLAY && selectedChar.discard.length > 0) {
             UI.showRestButtons(true);
             if (UI.elements.characterHand) {
               UI.elements.characterHand.innerHTML = `
-                <p style="color: #d69e2e; text-align: center; padding: 20px;">
+                <p style="color: ${CONSTANTS.COLORS.REST_TEXT}; text-align: center; padding: 20px;">
                   ${selectedChar.shortName} needs to rest!<br>
                   <small>Hand: ${selectedChar.hand.length} cards | Discard: ${selectedChar.discard.length} cards</small>
                 </p>
@@ -1072,7 +1071,7 @@ const Game = {
         // During execution phase - show current turn's cards
         const currentTurnEntry = state.turn.turnOrder[state.turn.currentTurnIndex];
 
-        if (currentTurnEntry && currentTurnEntry.type === 'character') {
+        if (currentTurnEntry && currentTurnEntry.type === CONSTANTS.UNIT_TYPES.CHARACTER) {
           // Show the selected cards for current character
           UI.renderSelectedCardsDisplay(
             currentTurnEntry.unit,
@@ -1081,18 +1080,18 @@ const Game = {
             currentTurnEntry.useTopOfA,
             state.turn.currentAction?.actionIndex
           );
-        } else if (currentTurnEntry && currentTurnEntry.type === 'enemy') {
+        } else if (currentTurnEntry && currentTurnEntry.type === CONSTANTS.UNIT_TYPES.ENEMY) {
           if (UI.elements.characterHand) {
             UI.elements.characterHand.innerHTML = `
-              <div style="text-align: center; padding: 20px; color: #f56565;">
+              <div style="text-align: center; padding: 20px; color: ${CONSTANTS.COLORS.ENEMY_TURN_TEXT};">
                 <div style="font-size: 1.2em; margin-bottom: 8px;">${currentTurnEntry.unit.name}'s Turn</div>
-                <div style="color: #9ca3af;">Enemy acting...</div>
+                <div style="color: ${CONSTANTS.COLORS.MUTED_TEXT};">Enemy acting...</div>
               </div>
             `;
           }
         } else {
           if (UI.elements.characterHand) {
-            UI.elements.characterHand.innerHTML = '<p style="color: #9ca3af; text-align: center;">Executing turn...</p>';
+            UI.elements.characterHand.innerHTML = `<p style="color: ${CONSTANTS.COLORS.MUTED_TEXT}; text-align: center;">Executing turn...</p>`;
           }
         }
 
@@ -1107,11 +1106,11 @@ const Game = {
         UI.showSkipButton(hasCurrentAction);
       }
 
-      if (state.turn.phase === 'execution') {
+      if (state.turn.phase === CONSTANTS.PHASES.EXECUTION) {
         UI.renderInitiativeTracker(state.turn.turnOrder, state.turn.currentTurnIndex);
       }
 
-    } else if (state.phase === 'victory') {
+    } else if (state.phase === CONSTANTS.PHASES.VICTORY) {
       UI.showScreen('victory-screen');
       const symbols = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789';
       let address = '';
@@ -1122,7 +1121,7 @@ const Game = {
       if (UI.elements.gateAddress) {
         UI.elements.gateAddress.textContent = address;
       }
-    } else if (state.phase === 'defeat') {
+    } else if (state.phase === CONSTANTS.PHASES.DEFEAT) {
       UI.showScreen('defeat-screen');
     }
   },

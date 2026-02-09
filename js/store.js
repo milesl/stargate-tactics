@@ -8,7 +8,7 @@ class Store {
     this._state = initialState;
     this._listeners = [];
     this._history = [];
-    this._maxHistory = 50;
+    this._maxHistory = CONSTANTS.LIMITS.MAX_HISTORY;
   }
 
   /**

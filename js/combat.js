@@ -85,19 +85,19 @@ const Combat = {
   /**
    * Get valid attack targets for a unit
    */
-  getAttackTargets(unit, range, state, targetType = 'enemy') {
+  getAttackTargets(unit, range, state, targetType = CONSTANTS.UNIT_TYPES.ENEMY) {
     const targets = [];
     const hexesInRange = HexMath.hexesInRange(unit.position, range);
 
     for (const hex of hexesInRange) {
       if (HexMath.equals(hex, unit.position)) continue;
 
-      if (targetType === 'enemy' && this.hasEnemy(hex, state)) {
+      if (targetType === CONSTANTS.UNIT_TYPES.ENEMY && this.hasEnemy(hex, state)) {
         targets.push({
           hex,
           unit: this.getEnemyAt(hex, state),
         });
-      } else if (targetType === 'character' && this.hasCharacter(hex, state)) {
+      } else if (targetType === CONSTANTS.UNIT_TYPES.CHARACTER && this.hasCharacter(hex, state)) {
         targets.push({
           hex,
           unit: this.getCharacterAt(hex, state),
@@ -134,9 +134,9 @@ const Combat = {
    * Execute a move action
    */
   executeMove(unit, targetHex, state, store) {
-    const unitType = state.characters.find(c => c.id === unit.id) ? 'character' : 'enemy';
+    const unitType = state.characters.find(c => c.id === unit.id) ? CONSTANTS.UNIT_TYPES.CHARACTER : CONSTANTS.UNIT_TYPES.ENEMY;
 
-    if (unitType === 'character') {
+    if (unitType === CONSTANTS.UNIT_TYPES.CHARACTER) {
       const characters = state.characters.map(c => {
         if (c.id === unit.id) {
           return { ...c, position: { ...targetHex } };
@@ -144,7 +144,7 @@ const Combat = {
         return c;
       });
       store.setState({ characters });
-      UI.addLogMessage(`${unit.shortName || unit.name} moved to (${targetHex.q}, ${targetHex.r})`, 'move');
+      UI.addLogMessage(`${unit.shortName || unit.name} moved to (${targetHex.q}, ${targetHex.r})`, CONSTANTS.LOG_TYPES.MOVE);
     } else {
       const enemies = state.enemies.map(e => {
         if (e.id === unit.id) {
@@ -153,7 +153,7 @@ const Combat = {
         return e;
       });
       store.setState({ enemies });
-      UI.addLogMessage(`${unit.name} moved to (${targetHex.q}, ${targetHex.r})`, 'move');
+      UI.addLogMessage(`${unit.name} moved to (${targetHex.q}, ${targetHex.r})`, CONSTANTS.LOG_TYPES.MOVE);
     }
   },
 
@@ -174,15 +174,15 @@ const Combat = {
       const newHealth = Math.max(0, target.health - damage);
       UI.addLogMessage(
         `${attacker.shortName || attacker.name} attacks ${target.name} for ${damage} damage! (${newHealth}/${target.maxHealth})`,
-        'attack'
+        CONSTANTS.LOG_TYPES.ATTACK
       );
 
       if (newHealth <= 0) {
-        UI.addLogMessage(`${target.name} defeated!`, 'attack');
+        UI.addLogMessage(`${target.name} defeated!`, CONSTANTS.LOG_TYPES.ATTACK);
       } else if (stun) {
         // Apply stun effect to enemy
         store.stunEnemy(target.id);
-        UI.addLogMessage(`${target.name} is stunned!`, 'attack');
+        UI.addLogMessage(`${target.name} is stunned!`, CONSTANTS.LOG_TYPES.ATTACK);
       }
     } else {
       store.damageCharacter(target.id, damage);
@@ -190,11 +190,11 @@ const Combat = {
       const newHealth = Math.max(0, char.health - damage);
       UI.addLogMessage(
         `${attacker.name} attacks ${target.shortName} for ${damage} damage! (${newHealth}/${target.maxHealth})`,
-        'attack'
+        CONSTANTS.LOG_TYPES.ATTACK
       );
 
       if (newHealth <= 0) {
-        UI.addLogMessage(`${target.shortName} has fallen! Mission failed!`, 'attack');
+        UI.addLogMessage(`${target.shortName} has fallen! Mission failed!`, CONSTANTS.LOG_TYPES.ATTACK);
       }
     }
 
@@ -239,7 +239,7 @@ const Combat = {
     }
 
     if (targetsToHit.length > 0) {
-      UI.addLogMessage(`AOE hits ${targetsToHit.length} additional target(s)!`, 'attack');
+      UI.addLogMessage(`AOE hits ${targetsToHit.length} additional target(s)!`, CONSTANTS.LOG_TYPES.ATTACK);
     }
   },
 
@@ -253,7 +253,7 @@ const Combat = {
         const actualHeal = newHealth - c.health;
         UI.addLogMessage(
           `${healer.shortName} heals ${target.shortName} for ${actualHeal}! (${newHealth}/${c.maxHealth})`,
-          'heal'
+          CONSTANTS.LOG_TYPES.HEAL
         );
         return { ...c, health: newHealth };
       }
@@ -318,9 +318,9 @@ const Combat = {
         store.setState({ characters });
       }
 
-      UI.addLogMessage(`${target.name || target.shortName} pushed ${pushedDistance} hex(es)!`, 'move');
+      UI.addLogMessage(`${target.name || target.shortName} pushed ${pushedDistance} hex(es)!`, CONSTANTS.LOG_TYPES.MOVE);
     } else {
-      UI.addLogMessage(`${target.name || target.shortName} couldn't be pushed (blocked)`, 'move');
+      UI.addLogMessage(`${target.name || target.shortName} couldn't be pushed (blocked)`, CONSTANTS.LOG_TYPES.MOVE);
     }
 
     return pushedDistance;
@@ -334,7 +334,7 @@ const Combat = {
       if (c.id === target.id) {
         UI.addLogMessage(
           `${caster.shortName} grants ${target.shortName} Shield ${amount}!`,
-          'heal'
+          CONSTANTS.LOG_TYPES.HEAL
         );
         return { ...c, shield: c.shield + amount };
       }
@@ -350,21 +350,21 @@ const Combat = {
    */
   processAction(action, unit, state, store) {
     switch (action.type) {
-      case 'move': {
+      case CONSTANTS.ACTION_TYPES.MOVE: {
         // Show reachable hexes for movement
         const reachable = this.getReachableHexes(unit, action.value, state);
         return {
-          type: 'move',
+          type: CONSTANTS.ACTION_TYPES.MOVE,
           reachableHexes: reachable,
           moveRange: action.value,
         };
       }
 
-      case 'attack': {
+      case CONSTANTS.ACTION_TYPES.ATTACK: {
         const range = action.range || 1;
-        const targets = this.getAttackTargets(unit, range, state, 'enemy');
+        const targets = this.getAttackTargets(unit, range, state, CONSTANTS.UNIT_TYPES.ENEMY);
         return {
-          type: 'attack',
+          type: CONSTANTS.ACTION_TYPES.ATTACK,
           targets,
           damage: action.value,
           range,
@@ -375,7 +375,7 @@ const Combat = {
         };
       }
 
-      case 'heal': {
+      case CONSTANTS.ACTION_TYPES.HEAL: {
         const range = action.range || 0;
 
         // AOE heal - heal all allies
@@ -397,14 +397,14 @@ const Combat = {
         }
 
         return {
-          type: 'heal',
+          type: CONSTANTS.ACTION_TYPES.HEAL,
           targets,
           amount: action.value,
           range,
         };
       }
 
-      case 'shield': {
+      case CONSTANTS.ACTION_TYPES.SHIELD: {
         // Check if self-only
         if (action.text?.includes('self')) {
           this.executeShield(unit, unit, action.value, state, store);
@@ -417,39 +417,39 @@ const Combat = {
           .map(c => ({ hex: c.position, unit: c }));
 
         return {
-          type: 'shield',
+          type: CONSTANTS.ACTION_TYPES.SHIELD,
           targets,
           amount: action.value,
         };
       }
 
-      case 'buff': {
+      case CONSTANTS.ACTION_TYPES.BUFF: {
         // For MVP, just log the buff
-        UI.addLogMessage(`${unit.shortName} uses ${action.text}`, 'heal');
+        UI.addLogMessage(`${unit.shortName} uses ${action.text}`, CONSTANTS.LOG_TYPES.HEAL);
         return { type: 'complete' };
       }
 
-      case 'special': {
+      case CONSTANTS.ACTION_TYPES.SPECIAL: {
         // Handle special actions
-        UI.addLogMessage(`${unit.shortName} uses special: ${action.text}`, 'move');
+        UI.addLogMessage(`${unit.shortName} uses special: ${action.text}`, CONSTANTS.LOG_TYPES.MOVE);
         return { type: 'complete' };
       }
 
-      case 'push': {
+      case CONSTANTS.ACTION_TYPES.PUSH: {
         // Get enemies in range for push targeting
         const range = action.range || 1;
-        const targets = this.getAttackTargets(unit, range, state, 'enemy');
+        const targets = this.getAttackTargets(unit, range, state, CONSTANTS.UNIT_TYPES.ENEMY);
         return {
-          type: 'push',
+          type: CONSTANTS.ACTION_TYPES.PUSH,
           targets,
           pushDistance: action.value,
           range,
         };
       }
 
-      case 'trap': {
+      case CONSTANTS.ACTION_TYPES.TRAP: {
         // For MVP, just log
-        UI.addLogMessage(`${unit.shortName} sets a trap: ${action.text}`, 'move');
+        UI.addLogMessage(`${unit.shortName} sets a trap: ${action.text}`, CONSTANTS.LOG_TYPES.MOVE);
         return { type: 'complete' };
       }
 

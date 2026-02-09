@@ -13,36 +13,36 @@ const UI = {
     const tips = [];
 
     switch (action.type) {
-      case 'move':
+      case CONSTANTS.ACTION_TYPES.MOVE:
         tips.push(`Move up to ${action.value} hexes`);
         break;
-      case 'attack':
+      case CONSTANTS.ACTION_TYPES.ATTACK:
         tips.push(`Deal ${action.value} damage`);
         if (action.range > 1) tips.push(`Range: ${action.range} hexes`);
         if (action.aoe) tips.push('Area of Effect: hits adjacent enemies');
         if (action.push) tips.push(`Push: knock target back ${action.push} hex(es)`);
         if (action.stun) tips.push('Stun: target skips next turn');
         break;
-      case 'heal':
+      case CONSTANTS.ACTION_TYPES.HEAL:
         tips.push(`Restore ${action.value} health`);
         if (action.aoe) tips.push('Affects all allies');
         if (action.range > 0) tips.push(`Range: ${action.range} hexes`);
         break;
-      case 'shield':
+      case CONSTANTS.ACTION_TYPES.SHIELD:
         tips.push(`Grant ${action.value} temporary shield`);
         tips.push('Shield absorbs damage until end of round');
         break;
-      case 'push':
+      case CONSTANTS.ACTION_TYPES.PUSH:
         tips.push(`Push enemy ${action.value} hexes away`);
         tips.push('Blocked by walls and other units');
         break;
-      case 'buff':
+      case CONSTANTS.ACTION_TYPES.BUFF:
         tips.push('Applies a beneficial effect');
         break;
-      case 'special':
+      case CONSTANTS.ACTION_TYPES.SPECIAL:
         tips.push('Special ability');
         break;
-      case 'trap':
+      case CONSTANTS.ACTION_TYPES.TRAP:
         tips.push('Place a trap on the battlefield');
         break;
     }
@@ -51,13 +51,13 @@ const UI = {
   },
 
   // Hex size for rendering
-  hexSize: 40,
+  hexSize: CONSTANTS.HEX.SIZE,
 
   // SVG namespace
-  svgNS: 'http://www.w3.org/2000/svg',
+  svgNS: CONSTANTS.SVG.NAMESPACE,
 
   // Grid offset for centering
-  gridOffset: { x: 100, y: 80 },
+  gridOffset: { x: CONSTANTS.GRID.OFFSET.x, y: CONSTANTS.GRID.OFFSET.y },
 
   // Click handlers (set by Game)
   onHexClick: null,
@@ -278,7 +278,7 @@ const UI = {
           const highlightData = highlightedHexes.find(h =>
             HexMath.key(h.hex || h) === key
           );
-          const highlightType = highlightData?.type || 'reachable';
+          const highlightType = highlightData?.type || CONSTANTS.HIGHLIGHT_TYPES.REACHABLE;
 
           const highlight = this.createSVGElement('polygon', {
             points: this.getHexPoints(hex),
@@ -298,12 +298,12 @@ const UI = {
 
     // Render characters
     characters.forEach(character => {
-      this.renderUnit(unitsGroup, character, 'character');
+      this.renderUnit(unitsGroup, character, CONSTANTS.UNIT_TYPES.CHARACTER);
     });
 
     // Render enemies
     enemies.forEach(enemy => {
-      this.renderUnit(unitsGroup, enemy, 'enemy');
+      this.renderUnit(unitsGroup, enemy, CONSTANTS.UNIT_TYPES.ENEMY);
     });
   },
 
@@ -315,10 +315,10 @@ const UI = {
    */
   renderUnit(parent, unit, type) {
     const center = this.getHexCenter(unit.position);
-    const radius = this.hexSize * 0.6;
+    const radius = this.hexSize * CONSTANTS.UI.UNIT_TOKEN_RADIUS_FRACTION;
 
     // Determine enemy subtype class
-    const enemyClass = type === 'enemy' ? (unit.ai === 'ranged' ? 'ranged' : 'melee') : '';
+    const enemyClass = type === CONSTANTS.UNIT_TYPES.ENEMY ? (unit.ai === CONSTANTS.AI_TYPES.RANGED ? 'ranged' : 'melee') : '';
 
     // Create unit group
     const unitGroup = this.createSVGElement('g', {
@@ -338,8 +338,8 @@ const UI = {
 
     // Add tooltip
     const title = this.createSVGElement('title');
-    if (type === 'enemy') {
-      const behavior = unit.ai === 'ranged' ? 'Ranged, keeps distance' : 'Melee, charges in';
+    if (type === CONSTANTS.UNIT_TYPES.ENEMY) {
+      const behavior = unit.ai === CONSTANTS.AI_TYPES.RANGED ? 'Ranged, keeps distance' : 'Melee, charges in';
       title.textContent = `${unit.name} | HP: ${unit.health}/${unit.maxHealth} | ATK: ${unit.attack} | ${behavior}`;
     } else {
       const shieldText = unit.shield > 0 ? ` | Shield: ${unit.shield}` : '';
@@ -348,7 +348,7 @@ const UI = {
     unitGroup.appendChild(title);
 
     // Unit label (initials or short name)
-    const label = type === 'character'
+    const label = type === CONSTANTS.UNIT_TYPES.CHARACTER
       ? unit.shortName?.charAt(0) || unit.name.charAt(0)
       : unit.name.charAt(0);
 
@@ -404,8 +404,8 @@ const UI = {
 
     const diamond = this.createSVGElement('polygon', {
       points: points,
-      fill: '#d4af37',
-      stroke: '#fff',
+      fill: CONSTANTS.COLORS.ARTIFACT_FILL,
+      stroke: CONSTANTS.COLORS.ARTIFACT_STROKE,
       'stroke-width': 2,
     });
     artifactGroup.appendChild(diamond);
@@ -417,7 +417,7 @@ const UI = {
 
     // Click handler to show hint
     artifactGroup.addEventListener('click', () => {
-      this.addLogMessage('Move a character to the artifact to retrieve it!', 'move');
+      this.addLogMessage('Move a character to the artifact to retrieve it!', CONSTANTS.LOG_TYPES.MOVE);
     });
 
     parent.appendChild(artifactGroup);
@@ -439,7 +439,7 @@ const UI = {
       portrait.dataset.id = character.id;
 
       const healthPercent = (character.health / character.maxHealth) * 100;
-      const healthClass = healthPercent <= 30 ? 'low' : '';
+      const healthClass = healthPercent <= CONSTANTS.UI.LOW_HEALTH_THRESHOLD ? 'low' : '';
 
       portrait.innerHTML = `
         <div class="character-name">${character.shortName}</div>
@@ -466,7 +466,7 @@ const UI = {
       this.elements.roomName.textContent = roomName;
     }
     if (this.elements.roomProgress) {
-      this.elements.roomProgress.textContent = `Room ${roomNumber}/3`;
+      this.elements.roomProgress.textContent = `Room ${roomNumber}/${CONSTANTS.GAME.TOTAL_ROOMS}`;
     }
   },
 
@@ -525,7 +525,7 @@ const UI = {
       const isCardA = selectedCards.cardA?.id === card.id;
       const isCardB = selectedCards.cardB?.id === card.id;
       const isSelected = isCardA || isCardB;
-      const isDisabled = character.hand.length <= 2 && !isSelected;
+      const isDisabled = character.hand.length <= CONSTANTS.GAME.CARDS_TO_PLAY && !isSelected;
 
       const cardEl = document.createElement('div');
       cardEl.className = `card ${isSelected ? 'selected' : ''} ${isDisabled ? 'disabled' : ''}`;
@@ -698,7 +698,7 @@ const UI = {
       logMessages.insertBefore(msgEl, logMessages.firstChild);
 
       // Keep only last 50 messages
-      while (logMessages.children.length > 50) {
+      while (logMessages.children.length > CONSTANTS.LIMITS.MAX_LOG_MESSAGES) {
         logMessages.removeChild(logMessages.lastChild);
       }
     }

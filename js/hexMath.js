@@ -38,7 +38,7 @@ const HexMath = {
   /**
    * Convert hex coordinates to pixel coordinates
    */
-  toPixel(hex, size = 40) {
+  toPixel(hex, size = CONSTANTS.HEX.SIZE) {
     const x = size * (3 / 2 * hex.q);
     const y = size * (Math.sqrt(3) / 2 * hex.q + Math.sqrt(3) * hex.r);
     return { x, y };
@@ -47,7 +47,7 @@ const HexMath = {
   /**
    * Convert pixel coordinates to hex coordinates
    */
-  fromPixel(point, size = 40) {
+  fromPixel(point, size = CONSTANTS.HEX.SIZE) {
     const q = (2 / 3 * point.x) / size;
     const r = (-1 / 3 * point.x + Math.sqrt(3) / 3 * point.y) / size;
     return this.round(q, r);
@@ -149,7 +149,7 @@ const HexMath = {
   /**
    * Get polygon points for SVG rendering
    */
-  polygonPoints(hex, size = 40) {
+  polygonPoints(hex, size = CONSTANTS.HEX.SIZE) {
     const { x, y } = this.toPixel(hex, size);
     const points = [];
     for (let i = 0; i < 6; i++) {
