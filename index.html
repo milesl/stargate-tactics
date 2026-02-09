@@ -105,15 +105,31 @@
   </div>
 
   <!-- Scripts (order matters!) -->
+  <!-- Constants & Infrastructure -->
   <script src="js/constants.js"></script>
   <script src="js/store.js"></script>
   <script src="js/hexMath.js"></script>
-  <script src="js/data.js"></script>
+
+  <!-- Data (base object first, then parts) -->
+  <script src="js/data/characters.js"></script>
+  <script src="js/data/cards.js"></script>
+  <script src="js/data/enemies.js"></script>
+  <script src="js/data/rooms.js"></script>
+
+  <!-- Core Systems -->
   <script src="js/pathfinding.js"></script>
   <script src="js/enemyAI.js"></script>
   <script src="js/combat.js"></script>
-  <script src="js/ui.js"></script>
-  <script src="js/game.js"></script>
+
+  <!-- UI (core first, then parts) -->
+  <script src="js/ui/core.js"></script>
+  <script src="js/ui/grid.js"></script>
+  <script src="js/ui/cards.js"></script>
+
+  <!-- Game (core first, then parts) -->
+  <script src="js/game/core.js"></script>
+  <script src="js/game/turns.js"></script>
+  <script src="js/game/actions.js"></script>
 
   <script>
     // Initialize game when DOM is ready
