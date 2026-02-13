@@ -155,12 +155,14 @@ Object.assign(Game, {
           ...c,
           hand: [...c.hand, ...recoveredCards],
           discard: [],
+          burned: [...c.burned, lostCard],
         };
       }
       return c;
     });
 
     this.store.setState({ characters });
+    EventBus.emit('card:burned', { name: lostCard.name, characterName: char.shortName });
     EventBus.emit('rest:short', { name: char.shortName, lostCard: lostCard.name, recoveredCount: recoveredCards.length });
     UI.showRestButtons(false);
   },
@@ -178,13 +180,25 @@ Object.assign(Game, {
     // Recover all discarded cards and heal 2
     const recoveredCards = [...char.discard];
 
+    // Recover 1 random burned card
+    let recoveredBurnedCard = null;
+    let newBurned = [...char.burned];
+    if (newBurned.length > 0) {
+      const burnedIndex = Math.floor(Math.random() * newBurned.length);
+      recoveredBurnedCard = newBurned[burnedIndex];
+      newBurned = newBurned.filter((_, i) => i !== burnedIndex);
+    }
+
     const characters = state.characters.map(c => {
       if (c.id === charId) {
         const newHealth = Math.min(c.maxHealth, c.health + CONSTANTS.GAME.LONG_REST_HEAL);
+        const newHand = [...c.hand, ...recoveredCards];
+        if (recoveredBurnedCard) newHand.push(recoveredBurnedCard);
         return {
           ...c,
-          hand: [...c.hand, ...recoveredCards],
+          hand: newHand,
           discard: [],
+          burned: newBurned,
           health: newHealth,
         };
       }
@@ -200,7 +214,12 @@ Object.assign(Game, {
     });
 
     this.store.setState({ characters: updatedCharacters });
-    EventBus.emit('rest:long', { name: char.shortName, healAmount: CONSTANTS.GAME.LONG_REST_HEAL, recoveredCount: recoveredCards.length });
+    EventBus.emit('rest:long', {
+      name: char.shortName,
+      healAmount: CONSTANTS.GAME.LONG_REST_HEAL,
+      recoveredCount: recoveredCards.length,
+      recoveredBurnedCard: recoveredBurnedCard?.name || null,
+    });
     UI.showRestButtons(false);
   },
 
@@ -273,8 +292,10 @@ Object.assign(Game, {
         }
       }
     } else {
-      // Check if any character can still play (has cards)
-      const canContinue = this.store.state.characters.some(c => c.hand.length >= CONSTANTS.GAME.CARDS_TO_PLAY);
+      // Check if any character can still play (has cards or can rest)
+      const canContinue = this.store.state.characters.some(c =>
+        c.hand.length >= CONSTANTS.GAME.CARDS_TO_PLAY || c.discard.length > 0
+      );
       if (!canContinue) {
         UI.addLogMessage('No cards remaining! Mission failed!', CONSTANTS.LOG_TYPES.ATTACK);
         this.store.setPhase(CONSTANTS.PHASES.DEFEAT);

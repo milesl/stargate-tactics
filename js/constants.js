@@ -96,6 +96,7 @@ const CONSTANTS = Object.freeze({
     REST_TEXT: '#d69e2e',
     ENEMY_TURN_TEXT: '#f56565',
     MUTED_TEXT: '#9ca3af',
+    BURN: '#e05a00',
   }),
 
   FLOATING_NUMBER: Object.freeze({

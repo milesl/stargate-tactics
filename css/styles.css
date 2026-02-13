@@ -450,6 +450,23 @@ body {
   border-left-color: #4299e1;
 }
 
+.card-action.burn {
+  border-left-color: #e05a00;
+  background: rgba(224, 90, 0, 0.1);
+}
+
+.burn-badge {
+  display: inline-block;
+  background: #e05a00;
+  color: #fff;
+  padding: 1px 5px;
+  border-radius: 3px;
+  font-size: 0.7em;
+  font-weight: bold;
+  margin-left: 4px;
+  vertical-align: middle;
+}
+
 .card-divider {
   height: 1px;
   background: linear-gradient(90deg, transparent, #4a5568, transparent);

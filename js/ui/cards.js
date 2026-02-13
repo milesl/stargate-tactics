@@ -171,13 +171,13 @@ Object.assign(UI, {
           <span class="card-name">${card.name}</span>
           <span class="card-initiative" title="Initiative: Lower goes first">${card.initiative}</span>
         </div>
-        <div class="card-action top-action" title="${topTooltip}">
-          <div class="action-label top-label">TOP</div>
+        <div class="card-action top-action${card.top.burn ? ' burn' : ''}" title="${topTooltip}">
+          <div class="action-label top-label">TOP${card.top.burn ? ' <span class="burn-badge">BURN</span>' : ''}</div>
           <div class="action-text">${card.top.text}</div>
         </div>
         <div class="card-divider"></div>
-        <div class="card-action bottom-action" title="${bottomTooltip}">
-          <div class="action-label bottom-label">BOTTOM</div>
+        <div class="card-action bottom-action${card.bottom.burn ? ' burn' : ''}" title="${bottomTooltip}">
+          <div class="action-label bottom-label">BOTTOM${card.bottom.burn ? ' <span class="burn-badge">BURN</span>' : ''}</div>
           <div class="action-text">${card.bottom.text}</div>
         </div>
         ${selectionIndicator}
@@ -211,6 +211,7 @@ Object.assign(UI, {
             <div class="execution-card-name">${actions[0].card.name}</div>
             <div class="execution-card-action">
               <span class="action-badge">${actions[0].half}</span>
+              ${actions[0].action.burn ? '<span class="burn-badge">BURN</span>' : ''}
               ${actions[0].action.text}
             </div>
             ${currentActionIndex === 0 ? '<div class="action-status">← Current</div>' : ''}
@@ -220,6 +221,7 @@ Object.assign(UI, {
             <div class="execution-card-name">${actions[1].card.name}</div>
             <div class="execution-card-action">
               <span class="action-badge">${actions[1].half}</span>
+              ${actions[1].action.burn ? '<span class="burn-badge">BURN</span>' : ''}
               ${actions[1].action.text}
             </div>
             ${currentActionIndex === 1 ? '<div class="action-status">← Current</div>' : ''}
@@ -265,13 +267,13 @@ Object.assign(UI, {
           <span class="card-name">${card.name}</span>
           <span class="card-initiative" title="Initiative: Lower goes first">${card.initiative}</span>
         </div>
-        <div class="card-action top-action action-choice-half" data-card-id="${card.id}" data-half="top" title="${topTooltip}">
-          <div class="action-label top-label">TOP</div>
+        <div class="card-action top-action action-choice-half${card.top.burn ? ' burn' : ''}" data-card-id="${card.id}" data-half="top" title="${topTooltip}">
+          <div class="action-label top-label">TOP${card.top.burn ? ' <span class="burn-badge">BURN</span>' : ''}</div>
           <div class="action-text">${card.top.text}</div>
         </div>
         <div class="card-divider"></div>
-        <div class="card-action bottom-action action-choice-half" data-card-id="${card.id}" data-half="bottom" title="${bottomTooltip}">
-          <div class="action-label bottom-label">BOTTOM</div>
+        <div class="card-action bottom-action action-choice-half${card.bottom.burn ? ' burn' : ''}" data-card-id="${card.id}" data-half="bottom" title="${bottomTooltip}">
+          <div class="action-label bottom-label">BOTTOM${card.bottom.burn ? ' <span class="burn-badge">BURN</span>' : ''}</div>
           <div class="action-text">${card.bottom.text}</div>
         </div>
       `;

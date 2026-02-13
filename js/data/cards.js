@@ -36,7 +36,7 @@ GameData.cards = {
       id: 'jack_05',
       name: 'Grenade',
       initiative: 55,
-      top: { type: 'attack', value: 2, range: 3, aoe: true, text: 'Attack 2, Range 3, AOE' },
+      top: { type: 'attack', value: 2, range: 3, aoe: true, burn: true, text: 'Attack 2, Range 3, AOE [BURN]' },
       bottom: { type: 'move', value: 3, text: 'Move 3' },
     },
     {
@@ -57,7 +57,7 @@ GameData.cards = {
       id: 'jack_08',
       name: 'Headshot',
       initiative: 60,
-      top: { type: 'attack', value: 5, range: 3, text: 'Attack 5, Range 3' },
+      top: { type: 'attack', value: 5, range: 3, burn: true, text: 'Attack 5, Range 3 [BURN]' },
       bottom: { type: 'move', value: 2, text: 'Move 2' },
     },
     {
@@ -81,7 +81,7 @@ GameData.cards = {
       id: 'sam_01',
       name: 'Zat Gun',
       initiative: 28,
-      top: { type: 'attack', value: 2, range: 2, stun: true, text: 'Attack 2, Range 2, Stun' },
+      top: { type: 'attack', value: 2, range: 2, stun: true, burn: true, text: 'Attack 2, Range 2, Stun [BURN]' },
       bottom: { type: 'move', value: 3, text: 'Move 3' },
     },
     {
@@ -95,7 +95,7 @@ GameData.cards = {
       id: 'sam_03',
       name: 'C4 Placement',
       initiative: 65,
-      top: { type: 'trap', value: 4, text: 'Set trap: 4 damage' },
+      top: { type: 'trap', value: 4, burn: true, text: 'Set trap: 4 damage [BURN]' },
       bottom: { type: 'move', value: 3, text: 'Move 3' },
     },
     {
@@ -130,7 +130,7 @@ GameData.cards = {
       id: 'sam_08',
       name: 'Naquadah Reactor',
       initiative: 18,
-      top: { type: 'special', text: 'Draw 2 cards' },
+      top: { type: 'special', burn: true, text: 'Draw 2 cards [BURN]' },
       bottom: { type: 'move', value: 3, text: 'Move 3' },
     },
     {
@@ -189,7 +189,7 @@ GameData.cards = {
       id: 'daniel_06',
       name: 'Peaceful Resolution',
       initiative: 5,
-      top: { type: 'special', text: 'Enemy skips turn' },
+      top: { type: 'special', burn: true, text: 'Enemy skips turn [BURN]' },
       bottom: { type: 'move', value: 4, text: 'Move 4' },
     },
     {
@@ -203,7 +203,7 @@ GameData.cards = {
       id: 'daniel_08',
       name: 'Emergency Heal',
       initiative: 16,
-      top: { type: 'heal', value: 4, text: 'Heal 4 (self or ally)' },
+      top: { type: 'heal', value: 4, burn: true, text: 'Heal 4 (self or ally) [BURN]' },
       bottom: { type: 'move', value: 2, text: 'Move 2' },
     },
     {
@@ -234,7 +234,7 @@ GameData.cards = {
       id: 'tealc_02',
       name: 'Indeed',
       initiative: 55,
-      top: { type: 'attack', value: 5, range: 1, text: 'Attack 5, Melee' },
+      top: { type: 'attack', value: 5, range: 1, burn: true, text: 'Attack 5, Melee [BURN]' },
       bottom: { type: 'move', value: 3, text: 'Move 3' },
     },
     {
@@ -255,7 +255,7 @@ GameData.cards = {
       id: 'tealc_05',
       name: 'Cleaving Strike',
       initiative: 48,
-      top: { type: 'attack', value: 3, aoe: true, text: 'Attack 3, hit 2 adjacent' },
+      top: { type: 'attack', value: 3, aoe: true, burn: true, text: 'Attack 3, hit 2 adjacent [BURN]' },
       bottom: { type: 'move', value: 2, text: 'Move 2' },
     },
     {
@@ -276,7 +276,7 @@ GameData.cards = {
       id: 'tealc_08',
       name: 'Power Strike',
       initiative: 62,
-      top: { type: 'attack', value: 6, range: 1, text: 'Attack 6, Melee' },
+      top: { type: 'attack', value: 6, range: 1, burn: true, text: 'Attack 6, Melee [BURN]' },
       bottom: { type: 'move', value: 2, text: 'Move 2' },
     },
     {

@@ -96,6 +96,7 @@ const Game = {
             position: { ...GameData.rooms[0].startPositions[index] },
             hand: [...GameData.cards[charDef.deck]],
             discard: [],
+            burned: [],
             shield: 0,
             effects: [],
           }));
@@ -283,18 +284,39 @@ const Game = {
         },
 
         discardUsedCards() {
+          // Build a set of burned card IDs from turn order actions
+          const burnedCardIds = new Set();
+          for (const entry of this.state.turn.turnOrder) {
+            if (entry.type === CONSTANTS.UNIT_TYPES.CHARACTER && entry.actions) {
+              for (const actionEntry of entry.actions) {
+                if (actionEntry.action.burn) {
+                  burnedCardIds.add(actionEntry.card.id);
+                }
+              }
+            }
+          }
+
           const characters = this.state.characters.map(char => {
             const selection = this.state.turn.selectedCards[char.id];
             if (!selection) return char;
 
             const usedCardIds = [selection.cardA?.id, selection.cardB?.id].filter(Boolean);
+            const usedCards = char.hand.filter(c => usedCardIds.includes(c.id));
             const newHand = char.hand.filter(c => !usedCardIds.includes(c.id));
-            const newDiscard = [...char.discard, ...char.hand.filter(c => usedCardIds.includes(c.id))];
+
+            const toBurn = usedCards.filter(c => burnedCardIds.has(c.id));
+            const toDiscard = usedCards.filter(c => !burnedCardIds.has(c.id));
+
+            // Emit burn events for each burned card
+            for (const card of toBurn) {
+              EventBus.emit('card:burned', { name: card.name, characterName: char.shortName });
+            }
 
             return {
               ...char,
               hand: newHand,
-              discard: newDiscard,
+              discard: [...char.discard, ...toDiscard],
+              burned: [...char.burned, ...toBurn],
             };
           });
 
@@ -448,7 +470,16 @@ const Game = {
     });
 
     EventBus.on('rest:long', (data) => {
-      UI.addLogMessage(`${data.name} takes a long rest, heals ${data.healAmount}, recovers ${data.recoveredCount} cards (skips this round)`, CONSTANTS.LOG_TYPES.HEAL);
+      let msg = `${data.name} takes a long rest, heals ${data.healAmount}, recovers ${data.recoveredCount} cards`;
+      if (data.recoveredBurnedCard) {
+        msg += `, recovers burned card "${data.recoveredBurnedCard}"`;
+      }
+      msg += ' (skips this round)';
+      UI.addLogMessage(msg, CONSTANTS.LOG_TYPES.HEAL);
+    });
+
+    EventBus.on('card:burned', (data) => {
+      UI.addLogMessage(`${data.characterName}'s "${data.name}" burned!`, CONSTANTS.LOG_TYPES.ATTACK);
     });
   },
 
@@ -530,7 +561,7 @@ const Game = {
               UI.elements.characterHand.innerHTML = `
                 <p style="color: ${CONSTANTS.COLORS.REST_TEXT}; text-align: center; padding: 20px;">
                   ${selectedChar.shortName} needs to rest!<br>
-                  <small>Hand: ${selectedChar.hand.length} cards | Discard: ${selectedChar.discard.length} cards</small>
+                  <small>Hand: ${selectedChar.hand.length} | Discard: ${selectedChar.discard.length} | Burned: ${selectedChar.burned.length}</small>
                 </p>
               `;
             }
