@@ -32,7 +32,7 @@ const Game = {
         // Current turn state
         turn: {
           phase: CONSTANTS.PHASES.SELECTION,
-          selectedCards: {}, // { characterId: { cardA, cardB, useTopOfA } }
+          selectedCards: {}, // { characterId: { cardA, cardB } }
           turnOrder: [],
           currentTurnIndex: 0,
           // Current action being executed
@@ -153,14 +153,12 @@ const Game = {
           const currentSelection = this.state.turn.selectedCards[characterId] || {
             cardA: null,
             cardB: null,
-            useTopOfA: true,
           };
 
           let newSelection;
 
           if (currentSelection.cardA?.id === card.id) {
             newSelection = {
-              ...currentSelection,
               cardA: currentSelection.cardB,
               cardB: null,
             };
@@ -183,7 +181,6 @@ const Game = {
             newSelection = {
               cardA: currentSelection.cardB,
               cardB: card,
-              useTopOfA: true,
             };
           }
 
@@ -376,6 +373,9 @@ const Game = {
         `${data.attackerName} attacks ${data.targetName} for ${data.damage} damage! (${data.newHealth}/${data.maxHealth})`,
         CONSTANTS.LOG_TYPES.ATTACK
       );
+      if (data.position) {
+        UI.showFloatingNumber(data.position, `-${data.damage}`, 'damage');
+      }
     });
 
     EventBus.on('unit:defeated', (data) => {
@@ -399,6 +399,9 @@ const Game = {
         `${data.healerName} heals ${data.targetName} for ${data.amount}! (${data.newHealth}/${data.maxHealth})`,
         CONSTANTS.LOG_TYPES.HEAL
       );
+      if (data.position && data.amount > 0) {
+        UI.showFloatingNumber(data.position, `+${data.amount}`, 'heal');
+      }
     });
 
     EventBus.on('unit:pushed', (data) => {
@@ -411,6 +414,9 @@ const Game = {
 
     EventBus.on('unit:shielded', (data) => {
       UI.addLogMessage(`${data.casterName} grants ${data.targetName} Shield ${data.amount}!`, CONSTANTS.LOG_TYPES.HEAL);
+      if (data.position) {
+        UI.showFloatingNumber(data.position, `+${data.amount}`, 'shield');
+      }
     });
 
     EventBus.on('action:special', (data) => {
@@ -544,13 +550,19 @@ const Game = {
         // During execution phase - show current turn's cards
         const currentTurnEntry = state.turn.turnOrder[state.turn.currentTurnIndex];
 
-        if (currentTurnEntry && currentTurnEntry.type === CONSTANTS.UNIT_TYPES.CHARACTER) {
-          // Show the selected cards for current character
-          UI.renderSelectedCardsDisplay(
+        if (currentTurnEntry && currentTurnEntry.type === CONSTANTS.UNIT_TYPES.CHARACTER && !currentTurnEntry.actions) {
+          // Awaiting action choice - show the 4 options
+          UI.renderActionChoice(
             currentTurnEntry.unit,
             currentTurnEntry.cardA,
             currentTurnEntry.cardB,
-            currentTurnEntry.useTopOfA,
+            (actions) => this.selectActionChoice(actions)
+          );
+        } else if (currentTurnEntry && currentTurnEntry.type === CONSTANTS.UNIT_TYPES.CHARACTER && currentTurnEntry.actions) {
+          // Show the selected cards for current character
+          UI.renderSelectedCardsDisplay(
+            currentTurnEntry.unit,
+            currentTurnEntry.actions,
             state.turn.currentAction?.actionIndex
           );
         } else if (currentTurnEntry && currentTurnEntry.type === CONSTANTS.UNIT_TYPES.ENEMY) {

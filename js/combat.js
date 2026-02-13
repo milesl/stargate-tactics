@@ -178,6 +178,8 @@ const Combat = {
         damage,
         newHealth,
         maxHealth: target.maxHealth,
+        targetId: target.id,
+        position: target.position,
       });
 
       if (newHealth <= 0) {
@@ -197,6 +199,8 @@ const Combat = {
         damage,
         newHealth,
         maxHealth: target.maxHealth,
+        targetId: target.id,
+        position: target.position,
       });
 
       if (newHealth <= 0) {
@@ -263,6 +267,8 @@ const Combat = {
           amount: actualHeal,
           newHealth,
           maxHealth: c.maxHealth,
+          targetId: target.id,
+          position: target.position,
         });
         return { ...c, health: newHealth };
       }
@@ -345,6 +351,8 @@ const Combat = {
           casterName: caster.shortName,
           targetName: target.shortName,
           amount,
+          targetId: target.id,
+          position: target.position,
         });
         return { ...c, shield: c.shield + amount };
       }

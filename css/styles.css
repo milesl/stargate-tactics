@@ -450,19 +450,6 @@ body {
   border-left-color: #4299e1;
 }
 
-.card-action.will-use {
-  background: #2d3e50;
-  box-shadow: inset 0 0 8px rgba(212, 175, 55, 0.3);
-}
-
-.card-action.will-use.top-action {
-  border-left-color: #68d391;
-}
-
-.card-action.will-use.bottom-action {
-  border-left-color: #63b3ed;
-}
-
 .card-divider {
   height: 1px;
   background: linear-gradient(90deg, transparent, #4a5568, transparent);
@@ -594,6 +581,46 @@ body {
 
 .action-status.done {
   color: #48bb78;
+}
+
+/* Action Choice Phase */
+#character-hand:has(.action-choice-display) {
+  display: block;
+}
+
+.action-choice-display {
+  padding: 12px;
+}
+
+.action-choice-header {
+  font-size: 1.1em;
+  font-weight: bold;
+  color: #d4af37;
+  text-align: center;
+  margin-bottom: 12px;
+  padding-bottom: 8px;
+  border-bottom: 1px solid #4a5568;
+}
+
+.action-choice-cards {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  justify-content: center;
+}
+
+.action-choice-card {
+  cursor: default;
+}
+
+.action-choice-half {
+  cursor: pointer;
+  transition: background 0.15s, box-shadow 0.15s;
+}
+
+.action-choice-half:hover {
+  background: #2d3e50;
+  box-shadow: inset 0 0 10px rgba(212, 175, 55, 0.4);
 }
 
 .character-shield {
@@ -782,6 +809,39 @@ body {
   font-size: 10px;
   text-anchor: middle;
   pointer-events: none;
+}
+
+/* Floating Damage Numbers */
+@keyframes float-up {
+  0% {
+    opacity: 1;
+    transform: translateY(0);
+  }
+  100% {
+    opacity: 0;
+    transform: translateY(-30px);
+  }
+}
+
+.floating-number {
+  font-family: 'Courier New', monospace;
+  font-size: 18px;
+  font-weight: bold;
+  text-anchor: middle;
+  pointer-events: none;
+  animation: float-up 1s ease-out forwards;
+}
+
+.floating-number--damage {
+  fill: #ef4444;
+}
+
+.floating-number--heal {
+  fill: #22c55e;
+}
+
+.floating-number--shield {
+  fill: #3b82f6;
 }
 
 /* Artifact Token */

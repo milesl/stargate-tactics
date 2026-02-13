@@ -136,7 +136,7 @@ Object.assign(UI, {
   /**
    * Render card hand for a character
    * @param {Object} character - Character data
-   * @param {Object} selectedCards - Currently selected cards {cardA, cardB, useTopOfA}
+   * @param {Object} selectedCards - Currently selected cards {cardA, cardB}
    * @param {Function} onCardClick - Card click handler
    */
   renderCardHand(character, selectedCards = {}, onCardClick) {
@@ -156,17 +156,11 @@ Object.assign(UI, {
       cardEl.dataset.id = card.id;
 
       let selectionIndicator = '';
-      let topWillUse = '';
-      let bottomWillUse = '';
 
       if (isCardA) {
-        selectionIndicator = `<div class="card-selection">Card A (using ${selectedCards.useTopOfA ? 'TOP' : 'BOTTOM'})</div>`;
-        topWillUse = selectedCards.useTopOfA ? 'will-use' : '';
-        bottomWillUse = selectedCards.useTopOfA ? '' : 'will-use';
+        selectionIndicator = '<div class="card-selection">Card A</div>';
       } else if (isCardB) {
-        selectionIndicator = `<div class="card-selection">Card B (using ${selectedCards.useTopOfA ? 'BOTTOM' : 'TOP'})</div>`;
-        topWillUse = selectedCards.useTopOfA ? '' : 'will-use';
-        bottomWillUse = selectedCards.useTopOfA ? 'will-use' : '';
+        selectionIndicator = '<div class="card-selection">Card B</div>';
       }
 
       const topTooltip = this.getActionTooltip(card.top);
@@ -177,12 +171,12 @@ Object.assign(UI, {
           <span class="card-name">${card.name}</span>
           <span class="card-initiative" title="Initiative: Lower goes first">${card.initiative}</span>
         </div>
-        <div class="card-action top-action ${topWillUse}" title="${topTooltip}">
+        <div class="card-action top-action" title="${topTooltip}">
           <div class="action-label top-label">TOP</div>
           <div class="action-text">${card.top.text}</div>
         </div>
         <div class="card-divider"></div>
-        <div class="card-action bottom-action ${bottomWillUse}" title="${bottomTooltip}">
+        <div class="card-action bottom-action" title="${bottomTooltip}">
           <div class="action-label bottom-label">BOTTOM</div>
           <div class="action-text">${card.bottom.text}</div>
         </div>
@@ -202,44 +196,104 @@ Object.assign(UI, {
   /**
    * Render the selected cards during execution phase
    * @param {Object} character - The character taking their turn
-   * @param {Object} cardA - First selected card
-   * @param {Object} cardB - Second selected card
-   * @param {Boolean} useTopOfA - Whether to use top of cardA
+   * @param {Array} actions - Array of 2 action objects [{action, card, half}, {action, card, half}]
    * @param {Number} currentActionIndex - Which action is currently being executed (0 or 1)
    */
-  renderSelectedCardsDisplay(character, cardA, cardB, useTopOfA, currentActionIndex) {
+  renderSelectedCardsDisplay(character, actions, currentActionIndex) {
     const container = this.elements.characterHand;
     if (!container) return;
-
-    const action1 = useTopOfA ? cardA.top : cardA.bottom;
-    const action2 = useTopOfA ? cardB.bottom : cardB.top;
-    const action1Label = useTopOfA ? 'TOP' : 'BOTTOM';
-    const action2Label = useTopOfA ? 'BOTTOM' : 'TOP';
 
     container.innerHTML = `
       <div class="execution-cards-display">
         <div class="execution-header">${character.shortName}'s Turn</div>
         <div class="execution-cards">
           <div class="execution-card ${currentActionIndex === 0 ? 'current' : currentActionIndex > 0 ? 'done' : ''}">
-            <div class="execution-card-name">${cardA.name}</div>
+            <div class="execution-card-name">${actions[0].card.name}</div>
             <div class="execution-card-action">
-              <span class="action-badge">${action1Label}</span>
-              ${action1.text}
+              <span class="action-badge">${actions[0].half}</span>
+              ${actions[0].action.text}
             </div>
             ${currentActionIndex === 0 ? '<div class="action-status">← Current</div>' : ''}
             ${currentActionIndex > 0 ? '<div class="action-status done">✓ Done</div>' : ''}
           </div>
           <div class="execution-card ${currentActionIndex === 1 ? 'current' : ''}">
-            <div class="execution-card-name">${cardB.name}</div>
+            <div class="execution-card-name">${actions[1].card.name}</div>
             <div class="execution-card-action">
-              <span class="action-badge">${action2Label}</span>
-              ${action2.text}
+              <span class="action-badge">${actions[1].half}</span>
+              ${actions[1].action.text}
             </div>
             ${currentActionIndex === 1 ? '<div class="action-status">← Current</div>' : ''}
           </div>
         </div>
       </div>
     `;
+  },
+
+  /**
+   * Render action choice UI - shows both cards with clickable top/bottom halves.
+   * Clicking a half makes it action 1; the other card's opposite half becomes action 2.
+   * @param {Object} character - The character whose turn it is
+   * @param {Object} cardA - First selected card
+   * @param {Object} cardB - Second selected card
+   * @param {Function} onChoiceClick - Callback with chosen actions array
+   */
+  renderActionChoice(character, cardA, cardB, onChoiceClick) {
+    const container = this.elements.characterHand;
+    if (!container) return;
+
+    const cards = [cardA, cardB];
+    const otherCard = { [cardA.id]: cardB, [cardB.id]: cardA };
+
+    container.innerHTML = `
+      <div class="action-choice-display">
+        <div class="action-choice-header">${character.shortName}: Click an action to lead with</div>
+        <div class="action-choice-cards"></div>
+      </div>
+    `;
+
+    const cardsContainer = container.querySelector('.action-choice-cards');
+
+    cards.forEach(card => {
+      const cardEl = document.createElement('div');
+      cardEl.className = 'card action-choice-card';
+
+      const topTooltip = this.getActionTooltip(card.top);
+      const bottomTooltip = this.getActionTooltip(card.bottom);
+
+      cardEl.innerHTML = `
+        <div class="card-header">
+          <span class="card-name">${card.name}</span>
+          <span class="card-initiative" title="Initiative: Lower goes first">${card.initiative}</span>
+        </div>
+        <div class="card-action top-action action-choice-half" data-card-id="${card.id}" data-half="top" title="${topTooltip}">
+          <div class="action-label top-label">TOP</div>
+          <div class="action-text">${card.top.text}</div>
+        </div>
+        <div class="card-divider"></div>
+        <div class="card-action bottom-action action-choice-half" data-card-id="${card.id}" data-half="bottom" title="${bottomTooltip}">
+          <div class="action-label bottom-label">BOTTOM</div>
+          <div class="action-text">${card.bottom.text}</div>
+        </div>
+      `;
+
+      cardsContainer.appendChild(cardEl);
+    });
+
+    // Bind click handlers on each half
+    container.querySelectorAll('.action-choice-half').forEach(halfEl => {
+      halfEl.addEventListener('click', () => {
+        const clickedCardId = halfEl.dataset.cardId;
+        const clickedHalf = halfEl.dataset.half;
+        const clickedCard = cards.find(c => c.id === clickedCardId);
+        const other = otherCard[clickedCardId];
+        const oppositeHalf = clickedHalf === 'top' ? 'bottom' : 'top';
+
+        onChoiceClick([
+          { action: clickedCard[clickedHalf], card: clickedCard, half: clickedHalf.toUpperCase() },
+          { action: other[oppositeHalf], card: other, half: oppositeHalf.toUpperCase() },
+        ]);
+      });
+    });
   },
 
   /**

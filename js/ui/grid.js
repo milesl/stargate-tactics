@@ -273,4 +273,34 @@ Object.assign(UI, {
 
     parent.appendChild(artifactGroup);
   },
+
+  /**
+   * Show a floating number above a unit
+   * @param {Object} position - Hex coordinates {q, r}
+   * @param {number|string} value - Number to display
+   * @param {string} type - 'damage', 'heal', or 'shield'
+   */
+  showFloatingNumber(position, value, type) {
+    const svg = this.elements.hexGrid;
+    if (!svg) return;
+
+    const unitsLayer = svg.querySelector('#units-layer');
+    if (!unitsLayer) return;
+
+    const center = this.getHexCenter(position);
+    const randomOffsetX = (Math.random() - 0.5) * CONSTANTS.FLOATING_NUMBER.RANDOM_OFFSET_X;
+
+    const text = this.createSVGElement('text', {
+      x: center.x + randomOffsetX,
+      y: center.y + CONSTANTS.FLOATING_NUMBER.OFFSET_Y,
+      class: `floating-number floating-number--${type}`,
+    });
+    text.textContent = value;
+
+    unitsLayer.appendChild(text);
+
+    text.addEventListener('animationend', () => {
+      text.remove();
+    });
+  },
 });

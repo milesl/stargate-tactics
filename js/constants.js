@@ -34,6 +34,7 @@ const CONSTANTS = Object.freeze({
   PHASES: Object.freeze({
     BRIEFING: 'briefing',
     SELECTION: 'selection',
+    ACTION_CHOICE: 'actionChoice',
     EXECUTION: 'execution',
     PLAYING: 'playing',
     VICTORY: 'victory',
@@ -95,5 +96,16 @@ const CONSTANTS = Object.freeze({
     REST_TEXT: '#d69e2e',
     ENEMY_TURN_TEXT: '#f56565',
     MUTED_TEXT: '#9ca3af',
+  }),
+
+  FLOATING_NUMBER: Object.freeze({
+    DURATION: 1000,
+    OFFSET_Y: -30,
+    RANDOM_OFFSET_X: 20,
+    COLORS: Object.freeze({
+      DAMAGE: '#ef4444',
+      HEAL: '#22c55e',
+      SHIELD: '#3b82f6',
+    }),
   }),
 });

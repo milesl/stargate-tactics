@@ -44,10 +44,10 @@ Object.assign(Game, {
         order.push({
           unit: char,
           type: CONSTANTS.UNIT_TYPES.CHARACTER,
-          initiative: selection.cardA.initiative,
+          initiative: Math.min(selection.cardA.initiative, selection.cardB.initiative),
           cardA: selection.cardA,
           cardB: selection.cardB,
-          useTopOfA: selection.useTopOfA,
+          actions: null, // set during action choice phase
         });
       }
     }
@@ -107,11 +107,34 @@ Object.assign(Game, {
 
     if (currentTurn.type === CONSTANTS.UNIT_TYPES.CHARACTER) {
       EventBus.emit('turn:started', { unit: currentTurn.unit, type: CONSTANTS.UNIT_TYPES.CHARACTER, initiative: currentTurn.initiative });
-      this.executeCharacterAction(0);
+      // Wait for player to choose action pairing before executing
+      this.render(this.store.state);
     } else {
       EventBus.emit('turn:started', { unit: currentTurn.unit, type: CONSTANTS.UNIT_TYPES.ENEMY, initiative: currentTurn.initiative });
       this.executeEnemyTurn(currentTurn);
     }
+  },
+
+  /**
+   * Handle player's action choice (which card top/bottom pairing to use)
+   * @param {Array} actions - Array of 2 action objects [{action, card, half}, {action, card, half}]
+   */
+  selectActionChoice(actions) {
+    const state = this.store.state;
+    const turnOrder = [...state.turn.turnOrder];
+    turnOrder[state.turn.currentTurnIndex] = {
+      ...turnOrder[state.turn.currentTurnIndex],
+      actions,
+    };
+
+    this.store.setState({
+      turn: {
+        ...state.turn,
+        turnOrder,
+      },
+    });
+
+    this.executeCharacterAction(0);
   },
 
   /**
@@ -121,15 +144,8 @@ Object.assign(Game, {
     const state = this.store.state;
     const currentTurn = state.turn.turnOrder[state.turn.currentTurnIndex];
 
-    // Determine which action to use
-    let action;
-    if (actionIndex === 0) {
-      // First action: top of cardA if useTopOfA, else bottom of cardA
-      action = currentTurn.useTopOfA ? currentTurn.cardA.top : currentTurn.cardA.bottom;
-    } else {
-      // Second action: bottom of cardB if useTopOfA, else top of cardB
-      action = currentTurn.useTopOfA ? currentTurn.cardB.bottom : currentTurn.cardB.top;
-    }
+    // Use the chosen action pairing
+    const action = currentTurn.actions[actionIndex].action;
 
     // Get fresh unit state
     const unit = state.characters.find(c => c.id === currentTurn.unit.id);
