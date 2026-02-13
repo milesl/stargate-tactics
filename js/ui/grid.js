@@ -58,7 +58,8 @@ Object.assign(UI, {
     svg.setAttribute('height', gridHeight);
     svg.setAttribute('viewBox', `0 0 ${gridWidth} ${gridHeight}`);
 
-    // Clear existing content
+    // Preserve effects layer, clear everything else
+    const existingEffects = svg.querySelector('#effects-layer');
     svg.innerHTML = '';
 
     // Create a group for tiles
@@ -72,6 +73,14 @@ Object.assign(UI, {
     // Create a group for units
     const unitsGroup = this.createSVGElement('g', { id: 'units-layer' });
     svg.appendChild(unitsGroup);
+
+    // Re-append or create effects layer on top (persists across re-renders)
+    if (existingEffects) {
+      svg.appendChild(existingEffects);
+    } else {
+      const effectsGroup = this.createSVGElement('g', { id: 'effects-layer' });
+      svg.appendChild(effectsGroup);
+    }
 
     // Build set of occupied positions
     const occupiedPositions = new Set();
@@ -284,8 +293,8 @@ Object.assign(UI, {
     const svg = this.elements.hexGrid;
     if (!svg) return;
 
-    const unitsLayer = svg.querySelector('#units-layer');
-    if (!unitsLayer) return;
+    const effectsLayer = svg.querySelector('#effects-layer');
+    if (!effectsLayer) return;
 
     const center = this.getHexCenter(position);
     const randomOffsetX = (Math.random() - 0.5) * CONSTANTS.FLOATING_NUMBER.RANDOM_OFFSET_X;
@@ -297,7 +306,7 @@ Object.assign(UI, {
     });
     text.textContent = value;
 
-    unitsLayer.appendChild(text);
+    effectsLayer.appendChild(text);
 
     text.addEventListener('animationend', () => {
       text.remove();
@@ -313,8 +322,8 @@ Object.assign(UI, {
     const svg = this.elements.hexGrid;
     if (!svg) return;
 
-    const unitsLayer = svg.querySelector('#units-layer');
-    if (!unitsLayer) return;
+    const effectsLayer = svg.querySelector('#effects-layer');
+    if (!effectsLayer) return;
 
     const center = this.getHexCenter(position);
 
@@ -337,10 +346,123 @@ Object.assign(UI, {
     });
     text.textContent = modifier.label;
 
-    unitsLayer.appendChild(text);
+    effectsLayer.appendChild(text);
 
     text.addEventListener('animationend', () => {
       text.remove();
+    });
+  },
+
+  /**
+   * Show an attack projectile tracer from attacker to target
+   * @param {Object} fromPos - Attacker hex coordinates {q, r}
+   * @param {Object} toPos - Target hex coordinates {q, r}
+   */
+  showAttackProjectile(fromPos, toPos) {
+    const svg = this.elements.hexGrid;
+    if (!svg) return;
+
+    const effectsLayer = svg.querySelector('#effects-layer');
+    if (!effectsLayer) return;
+
+    const from = this.getHexCenter(fromPos);
+    const to = this.getHexCenter(toPos);
+
+    const line = this.createSVGElement('line', {
+      x1: from.x,
+      y1: from.y,
+      x2: to.x,
+      y2: to.y,
+      class: 'attack-tracer',
+    });
+
+    effectsLayer.appendChild(line);
+
+    line.addEventListener('animationend', () => {
+      line.remove();
+    });
+  },
+
+  /**
+   * Show a damage flash on a hit unit
+   * @param {Object} position - Hex coordinates {q, r}
+   */
+  showDamageFlash(position) {
+    const svg = this.elements.hexGrid;
+    if (!svg) return;
+
+    const effectsLayer = svg.querySelector('#effects-layer');
+    if (!effectsLayer) return;
+
+    const center = this.getHexCenter(position);
+    const radius = this.hexSize * CONSTANTS.UI.UNIT_TOKEN_RADIUS_FRACTION;
+
+    const circle = this.createSVGElement('circle', {
+      cx: center.x,
+      cy: center.y,
+      r: radius,
+      class: 'damage-flash',
+    });
+
+    effectsLayer.appendChild(circle);
+
+    circle.addEventListener('animationend', () => {
+      circle.remove();
+    });
+  },
+
+  /**
+   * Show a heal pulse on a healed unit
+   * @param {Object} position - Hex coordinates {q, r}
+   */
+  showHealPulse(position) {
+    const svg = this.elements.hexGrid;
+    if (!svg) return;
+
+    const effectsLayer = svg.querySelector('#effects-layer');
+    if (!effectsLayer) return;
+
+    const center = this.getHexCenter(position);
+
+    const circle = this.createSVGElement('circle', {
+      cx: center.x,
+      cy: center.y,
+      r: 5,
+      class: 'heal-pulse',
+    });
+
+    effectsLayer.appendChild(circle);
+
+    circle.addEventListener('animationend', () => {
+      circle.remove();
+    });
+  },
+
+  /**
+   * Show a shield shimmer on a shielded unit
+   * @param {Object} position - Hex coordinates {q, r}
+   */
+  showShieldShimmer(position) {
+    const svg = this.elements.hexGrid;
+    if (!svg) return;
+
+    const effectsLayer = svg.querySelector('#effects-layer');
+    if (!effectsLayer) return;
+
+    const center = this.getHexCenter(position);
+    const radius = this.hexSize * CONSTANTS.UI.UNIT_TOKEN_RADIUS_FRACTION;
+
+    const circle = this.createSVGElement('circle', {
+      cx: center.x,
+      cy: center.y,
+      r: radius,
+      class: 'shield-shimmer',
+    });
+
+    effectsLayer.appendChild(circle);
+
+    circle.addEventListener('animationend', () => {
+      circle.remove();
     });
   },
 });

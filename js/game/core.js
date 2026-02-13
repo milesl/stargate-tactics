@@ -432,7 +432,11 @@ const Game = {
         `${data.attackerName} attacks ${data.targetName} for ${data.damage} damage! (${data.newHealth}/${data.maxHealth})`,
         CONSTANTS.LOG_TYPES.ATTACK
       );
+      if (data.attackerPosition && data.position) {
+        UI.showAttackProjectile(data.attackerPosition, data.position);
+      }
       if (data.position) {
+        UI.showDamageFlash(data.position);
         UI.showFloatingNumber(data.position, `-${data.damage}`, 'damage');
       }
     });
@@ -459,6 +463,7 @@ const Game = {
         CONSTANTS.LOG_TYPES.HEAL
       );
       if (data.position && data.amount > 0) {
+        UI.showHealPulse(data.position);
         UI.showFloatingNumber(data.position, `+${data.amount}`, 'heal');
       }
     });
@@ -474,6 +479,7 @@ const Game = {
     EventBus.on('unit:shielded', (data) => {
       UI.addLogMessage(`${data.casterName} grants ${data.targetName} Shield ${data.amount}!`, CONSTANTS.LOG_TYPES.HEAL);
       if (data.position) {
+        UI.showShieldShimmer(data.position);
         UI.showFloatingNumber(data.position, `+${data.amount}`, 'shield');
       }
     });

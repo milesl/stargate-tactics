@@ -203,6 +203,7 @@ const Combat = {
         maxHealth: target.maxHealth,
         targetId: target.id,
         position: target.position,
+        attackerPosition: attacker.position,
       });
 
       if (newHealth <= 0) {
@@ -223,6 +224,7 @@ const Combat = {
         maxHealth: target.maxHealth,
         targetId: target.id,
         position: target.position,
+        attackerPosition: attacker.position,
       });
 
       if (newHealth <= 0) {
