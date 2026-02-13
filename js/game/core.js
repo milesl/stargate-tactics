@@ -39,6 +39,9 @@ const Game = {
           currentAction: null, // { type, data, actionIndex }
         },
 
+        // Attack modifier decks
+        modifierDecks: {},
+
         // UI state
         ui: {
           selectedCharacter: null,
@@ -322,6 +325,40 @@ const Game = {
 
           this.setState({ characters });
         },
+
+        initializeModifierDecks() {
+          const decks = {};
+
+          // Create a deck for each character
+          for (const char of this.state.characters) {
+            const cards = ModifierDeck.createCharacterDeck(char.id);
+            decks[char.id] = {
+              cards,
+              remaining: ModifierDeck.shuffle(cards),
+              needsReshuffle: false,
+            };
+          }
+
+          // Create the monster deck
+          const monsterCards = ModifierDeck.createMonsterDeck();
+          decks['monster'] = {
+            cards: monsterCards,
+            remaining: ModifierDeck.shuffle(monsterCards),
+            needsReshuffle: false,
+          };
+
+          this.setState({ modifierDecks: decks });
+        },
+
+        drawModifier(deckId) {
+          const decks = { ...this.state.modifierDecks };
+          const deckState = decks[deckId];
+          if (!deckState) return { value: 0, type: 'add', label: '+0' };
+
+          const modifier = ModifierDeck.draw(deckState);
+          this.setState({ modifierDecks: decks });
+          return modifier;
+        },
       },
     });
 
@@ -481,6 +518,16 @@ const Game = {
     EventBus.on('card:burned', (data) => {
       UI.addLogMessage(`${data.characterName}'s "${data.name}" burned!`, CONSTANTS.LOG_TYPES.ATTACK);
     });
+
+    EventBus.on('attack:modifier', (data) => {
+      UI.addLogMessage(
+        `${data.attackerName}: ${data.modifier.label} (${data.baseDamage} → ${data.finalDamage})`,
+        CONSTANTS.LOG_TYPES.ATTACK
+      );
+      if (data.position) {
+        UI.showModifierPopup(data.position, data.modifier);
+      }
+    });
   },
 
   /**
@@ -491,6 +538,7 @@ const Game = {
 
     this.store.initializeCharacters();
     this.store.initializeEnemies(0);
+    this.store.initializeModifierDecks();
     this.store.setPhase(CONSTANTS.PHASES.PLAYING);
     this.store.setSelectedCharacter(CONSTANTS.CHARACTER_IDS.JACK);
 
@@ -511,6 +559,7 @@ const Game = {
       currentRoom: 1,
       characters: [],
       enemies: [],
+      modifierDecks: {},
       turn: {
         phase: CONSTANTS.PHASES.SELECTION,
         selectedCards: {},

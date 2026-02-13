@@ -97,6 +97,10 @@ const CONSTANTS = Object.freeze({
     ENEMY_TURN_TEXT: '#f56565',
     MUTED_TEXT: '#9ca3af',
     BURN: '#e05a00',
+    MODIFIER_POSITIVE: '#22c55e',
+    MODIFIER_NEGATIVE: '#ef4444',
+    MODIFIER_CRITICAL: '#d4af37',
+    MODIFIER_NULL: '#6b7280',
   }),
 
   FLOATING_NUMBER: Object.freeze({

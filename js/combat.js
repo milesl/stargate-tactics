@@ -169,13 +169,36 @@ const Combat = {
   executeAttack(attacker, target, damage, state, store, stun = false) {
     const isTargetEnemy = state.enemies.some(e => e.id === target.id);
 
+    // Draw attack modifier
+    const isAttackerCharacter = state.characters.some(c => c.id === attacker.id);
+    const deckId = isAttackerCharacter ? attacker.id : 'monster';
+    const modifier = store.drawModifier(deckId);
+
+    // Apply modifier to base damage
+    let finalDamage;
+    if (modifier.type === 'null') {
+      finalDamage = 0;
+    } else if (modifier.type === 'multiply') {
+      finalDamage = damage * modifier.value;
+    } else {
+      finalDamage = Math.max(0, damage + modifier.value);
+    }
+
+    EventBus.emit('attack:modifier', {
+      attackerName: attacker.shortName || attacker.name,
+      modifier,
+      baseDamage: damage,
+      finalDamage,
+      position: target.position,
+    });
+
     if (isTargetEnemy) {
-      store.damageEnemy(target.id, damage);
-      const newHealth = Math.max(0, target.health - damage);
+      store.damageEnemy(target.id, finalDamage);
+      const newHealth = Math.max(0, target.health - finalDamage);
       EventBus.emit('unit:damaged', {
         attackerName: attacker.shortName || attacker.name,
         targetName: target.name,
-        damage,
+        damage: finalDamage,
         newHealth,
         maxHealth: target.maxHealth,
         targetId: target.id,
@@ -185,18 +208,17 @@ const Combat = {
       if (newHealth <= 0) {
         EventBus.emit('unit:defeated', { name: target.name, isCharacter: false });
       } else if (stun) {
-        // Apply stun effect to enemy
         store.stunEnemy(target.id);
         EventBus.emit('unit:stunned', { name: target.name });
       }
     } else {
-      store.damageCharacter(target.id, damage);
+      store.damageCharacter(target.id, finalDamage);
       const char = state.characters.find(c => c.id === target.id);
-      const newHealth = Math.max(0, char.health - damage);
+      const newHealth = Math.max(0, char.health - finalDamage);
       EventBus.emit('unit:damaged', {
         attackerName: attacker.name,
         targetName: target.shortName,
-        damage,
+        damage: finalDamage,
         newHealth,
         maxHealth: target.maxHealth,
         targetId: target.id,
@@ -208,7 +230,7 @@ const Combat = {
       }
     }
 
-    return { damage };
+    return { damage: finalDamage };
   },
 
   /**

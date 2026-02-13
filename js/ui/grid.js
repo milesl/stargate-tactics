@@ -303,4 +303,44 @@ Object.assign(UI, {
       text.remove();
     });
   },
+
+  /**
+   * Show a modifier popup above a unit
+   * @param {Object} position - Hex coordinates {q, r}
+   * @param {Object} modifier - Modifier card {value, type, label}
+   */
+  showModifierPopup(position, modifier) {
+    const svg = this.elements.hexGrid;
+    if (!svg) return;
+
+    const unitsLayer = svg.querySelector('#units-layer');
+    if (!unitsLayer) return;
+
+    const center = this.getHexCenter(position);
+
+    // Determine CSS class based on modifier type
+    let modClass = 'modifier-popup--positive';
+    if (modifier.type === 'null') {
+      modClass = 'modifier-popup--null';
+    } else if (modifier.type === 'multiply') {
+      modClass = 'modifier-popup--critical';
+    } else if (modifier.value < 0) {
+      modClass = 'modifier-popup--negative';
+    } else if (modifier.value === 0) {
+      modClass = 'modifier-popup--null';
+    }
+
+    const text = this.createSVGElement('text', {
+      x: center.x,
+      y: center.y + CONSTANTS.FLOATING_NUMBER.OFFSET_Y - 20,
+      class: `modifier-popup ${modClass}`,
+    });
+    text.textContent = modifier.label;
+
+    unitsLayer.appendChild(text);
+
+    text.addEventListener('animationend', () => {
+      text.remove();
+    });
+  },
 });
